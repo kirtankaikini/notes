@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kirtan's Note</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0d0d0f;
+  --surface: #141417;
+  --surface2: #1c1c21;
+  --border: #2a2a32;
+  --accent: #c8f562;
+  --accent2: #7c6af5;
+  --accent3: #f5a623;
+  --text: #eeeef0;
+  --muted: #6b6b78;
+  --danger: #ff6b6b;
+  --hh: 54px;
+  --th: 44px;
+}
+
+body {
+  font-family: 'Syne', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ══════════════ HEADER ══════════════ */
+#header {
+  height: var(--hh);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 8px;
+  flex-shrink: 0;
+  z-index: 200;
+}
+
+#logo {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  margin-right: 4px;
+}
+#logo span { color: var(--accent); }
+
+.hbtn {
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: 0.73rem;
+  letter-spacing: 0.03em;
+  display: flex; align-items: center; gap: 5px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.hbtn:hover { border-color: var(--accent2); color: var(--accent2); }
+.hbtn:disabled { opacity: 0.35; cursor: not-allowed; }
+.hbtn.primary { background: var(--accent); border-color: var(--accent); color: #0d0d0f; }
+.hbtn.primary:hover { background: #d4ff6e; color: #0d0d0f; border-color: #d4ff6e; }
+.hbtn.primary:disabled { opacity: 0.35; cursor: not-allowed; }
+.hbtn.active-free { background: #7c6af522; border-color: var(--accent2); color: var(--accent2); }
+
+#header-right { display: flex; gap: 8px; margin-left: auto; flex-shrink: 0; }
+
+.note-chip {
+  font-size: 0.68rem; color: var(--muted);
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 3px 9px;
+  font-family: 'DM Mono', monospace; white-space: nowrap;
+}
+
+/* ══════════════ GLOBAL TOOLBAR ══════════════ */
+#toolbar {
+  height: var(--th);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 10px; gap: 2px;
+  flex-shrink: 0; flex-wrap: nowrap;
+  overflow-x: auto; z-index: 190;
+}
+#toolbar::-webkit-scrollbar { height: 2px; }
+#toolbar::-webkit-scrollbar-thumb { background: var(--border); }
+
+.tb-sep { width: 1px; height: 22px; background: var(--border); margin: 0 4px; flex-shrink: 0; }
+
+.tb-btn {
+  width: 28px; height: 28px; border-radius: 5px; border: none;
+  background: transparent; color: var(--muted); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-family: 'Syne', sans-serif; font-weight: 700;
+  transition: all .12s; flex-shrink: 0;
+}
+.tb-btn:hover { background: var(--surface2); color: var(--text); }
+.tb-btn.active { background: var(--accent2); color: #fff; }
+
+.tb-select {
+  height: 28px; border-radius: 5px; border: 1px solid var(--border);
+  background: var(--surface2); color: var(--text); font-size: 0.68rem;
+  padding: 0 5px; cursor: pointer; flex-shrink: 0;
+  font-family: 'Syne', sans-serif; outline: none;
+}
+.tb-select:focus { border-color: var(--accent2); }
+.tb-select option { background: #1c1c21; }
+
+.tb-num {
+  width: 42px; height: 28px; border-radius: 5px; border: 1px solid var(--border);
+  background: var(--surface2); color: var(--text); font-size: 0.68rem;
+  text-align: center; flex-shrink: 0; font-family: 'DM Mono', monospace; outline: none;
+}
+.tb-num:focus { border-color: var(--accent2); }
+
+.tb-color {
+  width: 28px; height: 28px; border-radius: 5px; border: 1px solid var(--border);
+  cursor: pointer; padding: 2px; background: var(--surface2); flex-shrink: 0;
+}
+
+/* ══════════════ CANVAS ══════════════ */
+#canvas {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+#grid-container {
+  width: 100%; height: 100%;
+  display: grid;
+  gap: 4px;
+  padding: 4px;
+  transition: grid-template-columns .25s ease, grid-template-rows .25s ease;
+}
+
+/* ══════════════ NOTE PANEL ══════════════ */
+.note-panel {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  min-width: 140px; min-height: 120px;
+  transition: border-color .18s, box-shadow .18s;
+  animation: panelIn .2s ease;
+}
+.note-panel.focused { border-color: #7c6af555; }
+
+@keyframes panelIn {
+  from { opacity:0; transform:scale(.97); }
+  to   { opacity:1; transform:scale(1); }
+}
+
+/* Free mode */
+.note-panel.free {
+  position: absolute;
+  box-shadow: 0 8px 32px #00000066;
+  border-radius: 10px;
+}
+.note-panel.free.focused { border-color: var(--accent2); box-shadow: 0 12px 48px #7c6af530; }
+.note-panel.free .note-drag { cursor: grab; }
+.note-panel.free .note-drag:active { cursor: grabbing; }
+
+/* ── Panel header ── */
+.note-header {
+  height: 34px; background: var(--surface);
+  display: flex; align-items: center;
+  padding: 0 10px; gap: 6px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0; user-select: none;
+}
+.note-drag {
+  font-size: 0.9rem; color: var(--muted); flex-shrink: 0;
+  padding: 0 2px; cursor: default; transition: color .12s;
+}
+.note-drag:hover { color: var(--accent2); }
+.note-color-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.note-title {
+  flex: 1; background: transparent; border: none;
+  color: var(--text); font-size: 0.82rem; font-family: 'Syne', sans-serif;
+  font-weight: 700; outline: none; min-width: 0;
+}
+.note-title:focus { color: var(--accent2); }
+.note-close {
+  width: 20px; height: 20px; border-radius: 50%; border: none;
+  background: transparent; color: var(--muted); cursor: pointer;
+  font-size: 12px; display: flex; align-items: center; justify-content: center;
+  transition: all .12s; flex-shrink: 0;
+}
+.note-close:hover { background: var(--danger); color: #fff; }
+
+.resize-handle {
+  width: 18px; height: 18px; cursor: nwse-resize;
+  flex-shrink: 0; display: none; align-items: center;
+  justify-content: center; color: var(--muted); font-size: 10px;
+}
+.free .resize-handle { display: flex; }
+
+/* ── Editor ── */
+.note-editor {
+  flex: 1; overflow-y: auto; padding: 14px 16px;
+  outline: none; font-size: 15px; line-height: 1.76;
+  color: var(--text); caret-color: var(--accent);
+  background: var(--bg); word-wrap: break-word;
+  user-select: text;
+}
+.note-editor::-webkit-scrollbar { width: 3px; }
+.note-editor::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.note-editor:empty::before {
+  content: attr(data-placeholder);
+  color: var(--muted); pointer-events: none; font-style: italic;
+}
+
+/* ── Footer ── */
+.note-footer {
+  height: 24px; background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 0 10px; flex-shrink: 0;
+}
+.note-wc { font-size: 0.62rem; color: var(--muted); font-family: 'DM Mono', monospace; }
+.note-si { font-size: 0.62rem; color: var(--accent); font-family: 'DM Mono', monospace; opacity:0; transition: opacity .3s; }
+.note-si.show { opacity: 1; }
+
+/* ══════════════ LAYOUT PICKER PANEL ══════════════ */
+#layout-panel {
+  position: fixed;
+  top: calc(var(--hh) + var(--th) + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  z-index: 500;
+  box-shadow: 0 24px 64px #00000080;
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 380px;
+  max-width: 94vw;
+  animation: popIn .18s ease;
+}
+#layout-panel.show { display: flex; }
+
+@keyframes popIn {
+  from { opacity:0; transform: translateX(-50%) scale(.96) translateY(-6px); }
+  to   { opacity:1; transform: translateX(-50%) scale(1)   translateY(0); }
+}
+
+#layout-panel h3 {
+  font-size: 1rem; font-weight: 800; letter-spacing: -0.02em;
+}
+#layout-panel h3 span { color: var(--accent); }
+
+.layout-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.layout-opt {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 5px 6px;
+  cursor: pointer;
+  text-align: center;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--muted);
+  transition: all .18s;
+  background: var(--surface2);
+}
+.layout-opt:hover {
+  border-color: var(--accent2);
+  color: var(--accent2);
+  background: #7c6af510;
+}
+.layout-opt.selected {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: #c8f56210;
+}
+
+.layout-preview {
+  display: grid;
+  gap: 2px;
+  margin-bottom: 5px;
+  height: 36px;
+  width: 100%;
+}
+.layout-preview div { background: var(--border); border-radius: 2px; }
+.layout-opt:hover .layout-preview div { background: var(--accent2); opacity: .7; }
+.layout-opt.selected .layout-preview div { background: var(--accent); }
+
+.layout-panel-footer {
+  display: flex; gap: 8px; justify-content: flex-end;
+}
+
+/* ══════════════ IMPORT MODAL ══════════════ */
+#import-modal {
+  position: fixed; inset: 0;
+  background: #00000088;
+  z-index: 1000;
+  display: none; align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
+}
+#import-modal.show { display: flex; }
+
+#import-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+  max-width: 400px; width: 90%;
+  display: flex; flex-direction: column; gap: 18px;
+  box-shadow: 0 24px 64px #00000088;
+  animation: popIn .2s ease;
+}
+#import-box h3 { font-size: 1.1rem; font-weight: 800; }
+#import-box h3 span { color: var(--accent); }
+
+#drop-zone {
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  padding: 36px 20px;
+  text-align: center;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .2s;
+  font-size: 0.85rem;
+}
+#drop-zone:hover, #drop-zone.drag {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: #c8f56208;
+}
+#drop-zone .drop-icon { font-size: 2.4rem; margin-bottom: 10px; }
+#drop-zone input { display: none; }
+
+/* ══════════════ EMPTY STATE ══════════════ */
+#empty-state {
+  position: absolute; inset: 0; z-index: 5;
+  display: none;
+  align-items: center; justify-content: center; flex-direction: column;
+  gap: 14px; pointer-events: none;
+}
+#empty-state.show { display: flex; pointer-events: all; }
+#empty-state .ei { font-size: 3rem; opacity: .2; }
+#empty-state .et { font-size: 1.1rem; font-weight: 800; color: var(--muted); }
+#empty-state .es { font-size: 0.76rem; color: var(--muted); opacity: .55; }
+
+/* ══════════════ TOAST ══════════════ */
+#toast {
+  position: fixed; bottom: 22px; left: 50%;
+  transform: translateX(-50%) translateY(70px);
+  background: var(--surface2); border: 1px solid var(--accent2);
+  border-radius: 100px; padding: 8px 20px;
+  font-size: 0.76rem; font-weight: 600; color: var(--accent2);
+  z-index: 9999; transition: transform .28s cubic-bezier(.34,1.56,.64,1);
+  pointer-events: none; white-space: nowrap;
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+#toast.ok { border-color: var(--accent); color: var(--accent); }
+#toast.err { border-color: var(--danger); color: var(--danger); }
+
+/* scrollbars */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::selection { background: #c8f56228; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  <div id="logo">Kirtan's<span> Note</span></div>
+  <button class="hbtn" id="btn-add" onclick="addNote()">
+    <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+    New Note
+  </button>
+  <button class="hbtn" id="btn-layout" onclick="toggleLayoutPanel()">
+    <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="5.5" height="5.5" rx="1.5" stroke="currentColor" stroke-width="1.4"/><rect x="7.5" y="1" width="5.5" height="5.5" rx="1.5" stroke="currentColor" stroke-width="1.4"/><rect x="1" y="7.5" width="5.5" height="5.5" rx="1.5" stroke="currentColor" stroke-width="1.4"/><rect x="7.5" y="7.5" width="5.5" height="5.5" rx="1.5" stroke="currentColor" stroke-width="1.4"/></svg>
+    Layout
+  </button>
+  <button class="hbtn" id="btn-free" onclick="toggleFreeMode()">
+    <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 5V2h3M9 2h3v3M12 9v3H9M5 12H2V9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Free Mode
+  </button>
+  <span class="note-chip" id="note-chip">0 notes</span>
+  <div id="header-right">
+    <button class="hbtn" id="btn-open" onclick="document.getElementById('import-modal').classList.add('show')">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1.5 3.5A1 1 0 012.5 2.5h2.086a1 1 0 01.707.293L6 3.5h3.5A1 1 0 0110.5 4.5v5a1 1 0 01-1 1h-7a1 1 0 01-1-1V3.5z" stroke="currentColor" stroke-width="1.4"/></svg>
+      Open .knt
+    </button>
+    <button class="hbtn primary" id="btn-save" onclick="saveAll()" disabled>
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2h6.5L10 3.5V10a1 1 0 01-1 1H3a1 1 0 01-1-1V2z" stroke="currentColor" stroke-width="1.4"/><rect x="4" y="7" width="4" height="4" rx="0.5" stroke="currentColor" stroke-width="1.4"/><rect x="3.5" y="2" width="4" height="2.5" rx="0.5" stroke="currentColor" stroke-width="1.4"/></svg>
+      Save All
+    </button>
+  </div>
+</div>
+
+<!-- GLOBAL TOOLBAR -->
+<div id="toolbar">
+  <select class="tb-select" id="ff" style="width:120px" title="Font Family">
+    <option value="Lora, serif">Lora</option>
+    <option value="Syne, sans-serif">Syne</option>
+    <option value="DM Mono, monospace">DM Mono</option>
+    <option value="Arial, sans-serif">Arial</option>
+    <option value="Arial Black, sans-serif">Arial Black</option>
+    <option value="Arial Narrow, sans-serif">Arial Narrow</option>
+    <option value="Georgia, serif">Georgia</option>
+    <option value="Times New Roman, serif">Times New Roman</option>
+    <option value="Helvetica, sans-serif">Helvetica</option>
+    <option value="Verdana, sans-serif">Verdana</option>
+    <option value="Tahoma, sans-serif">Tahoma</option>
+    <option value="Trebuchet MS, sans-serif">Trebuchet MS</option>
+    <option value="Garamond, serif">Garamond</option>
+    <option value="Palatino Linotype, serif">Palatino</option>
+    <option value="Bookman Old Style, serif">Bookman</option>
+    <option value="Century Gothic, sans-serif">Century Gothic</option>
+    <option value="Candara, sans-serif">Candara</option>
+    <option value="Franklin Gothic Medium, sans-serif">Franklin Gothic</option>
+    <option value="Gill Sans, sans-serif">Gill Sans</option>
+    <option value="Courier New, monospace">Courier New</option>
+    <option value="Lucida Console, monospace">Lucida Console</option>
+    <option value="Impact, sans-serif">Impact</option>
+    <option value="Comic Sans MS, cursive">Comic Sans</option>
+  </select>
+  <input class="tb-num" type="number" id="fs" value="15" min="6" max="120" title="Font Size">
+  <div class="tb-sep"></div>
+  <button class="tb-btn" id="tb-bold"      title="Bold"><b>B</b></button>
+  <button class="tb-btn" id="tb-italic"    title="Italic"><i style="font-style:italic">I</i></button>
+  <button class="tb-btn" id="tb-under"     title="Underline"><u>U</u></button>
+  <button class="tb-btn" id="tb-strike"    title="Strikethrough"><s>S</s></button>
+  <div class="tb-sep"></div>
+  <button class="tb-btn" id="tb-h1"        title="Heading 1" style="font-size:10px;width:32px">H1</button>
+  <button class="tb-btn" id="tb-h2"        title="Heading 2" style="font-size:10px;width:32px">H2</button>
+  <button class="tb-btn" id="tb-h3"        title="Heading 3" style="font-size:10px;width:32px">H3</button>
+  <div class="tb-sep"></div>
+  <button class="tb-btn" id="tb-ul"        title="Bullet List">
+    <svg width="13" height="11" viewBox="0 0 13 11" fill="currentColor"><circle cx="1.5" cy="1.5" r="1.5"/><rect x="4" y="0.5" width="9" height="2" rx="1"/><circle cx="1.5" cy="5.5" r="1.5"/><rect x="4" y="4.5" width="9" height="2" rx="1"/><circle cx="1.5" cy="9.5" r="1.5"/><rect x="4" y="8.5" width="9" height="2" rx="1"/></svg>
+  </button>
+  <button class="tb-btn" id="tb-ol"        title="Numbered List">
+    <svg width="13" height="11" viewBox="0 0 13 11" fill="currentColor"><text x="0" y="4" font-size="4.5" font-family="monospace">1.</text><rect x="5" y="1" width="8" height="2" rx="1"/><text x="0" y="9" font-size="4.5" font-family="monospace">2.</text><rect x="5" y="6" width="8" height="2" rx="1"/></svg>
+  </button>
+  <div class="tb-sep"></div>
+  <button class="tb-btn" id="tb-al"        title="Align Left">
+    <svg width="13" height="11" viewBox="0 0 13 11" fill="currentColor"><rect x="0" y="0" width="13" height="2" rx="1"/><rect x="0" y="4.5" width="8" height="2" rx="1"/><rect x="0" y="9" width="13" height="2" rx="1"/></svg>
+  </button>
+  <button class="tb-btn" id="tb-ac"        title="Center">
+    <svg width="13" height="11" viewBox="0 0 13 11" fill="currentColor"><rect x="0" y="0" width="13" height="2" rx="1"/><rect x="2.5" y="4.5" width="8" height="2" rx="1"/><rect x="0" y="9" width="13" height="2" rx="1"/></svg>
+  </button>
+  <button class="tb-btn" id="tb-ar"        title="Align Right">
+    <svg width="13" height="11" viewBox="0 0 13 11" fill="currentColor"><rect x="0" y="0" width="13" height="2" rx="1"/><rect x="5" y="4.5" width="8" height="2" rx="1"/><rect x="0" y="9" width="13" height="2" rx="1"/></svg>
+  </button>
+  <button class="tb-btn" id="tb-aj"        title="Justify">
+    <svg width="13" height="11" viewBox="0 0 13 11" fill="currentColor"><rect x="0" y="0" width="13" height="2" rx="1"/><rect x="0" y="4.5" width="13" height="2" rx="1"/><rect x="0" y="9" width="13" height="2" rx="1"/></svg>
+  </button>
+  <div class="tb-sep"></div>
+  <label style="display:flex;align-items:center;gap:3px;font-size:10px;color:var(--muted);flex-shrink:0" title="Text Color">
+    A <input type="color" class="tb-color" id="tc" value="#eeeef0">
+  </label>
+  <label style="display:flex;align-items:center;gap:3px;font-size:10px;color:var(--muted);flex-shrink:0" title="Highlight Color">
+    H <input type="color" class="tb-color" id="hc" value="#141417">
+  </label>
+  <div class="tb-sep"></div>
+  <button class="tb-btn" id="tb-indent"    title="Indent">⇥</button>
+  <button class="tb-btn" id="tb-outdent"   title="Outdent">⇤</button>
+  <button class="tb-btn" id="tb-link"      title="Insert Link" style="font-size:13px">🔗</button>
+  <button class="tb-btn" id="tb-clear"     title="Clear Formatting" style="font-size:10px;letter-spacing:-0.5px">Tx</button>
+</div>
+
+<!-- CANVAS -->
+<div id="canvas">
+  <div id="grid-container"></div>
+  <div id="empty-state">
+    <div class="ei">🗒️</div>
+    <div class="et">Welcome, Kirtan!</div>
+    <div class="es">Open a .knt file or tap New Note to begin</div>
+    <div style="display:flex;gap:10px;margin-top:6px">
+      <button class="hbtn" onclick="document.getElementById('import-modal').classList.add('show')">Open .knt</button>
+      <button class="hbtn primary" onclick="addNote()">+ New Note</button>
+    </div>
+  </div>
+</div>
+
+<!-- LAYOUT PICKER PANEL -->
+<div id="layout-panel">
+  <div style="display:flex;align-items:center;justify-content:space-between">
+    <h3>Choose <span>Layout</span></h3>
+    <span style="font-size:0.68rem;color:var(--muted)">Click to select · Apply to confirm</span>
+  </div>
+  <div class="layout-grid" id="layout-grid"></div>
+  <div class="layout-panel-footer">
+    <button class="hbtn" onclick="closeLayoutPanel()">Cancel</button>
+    <button class="hbtn primary" onclick="applyLayout()">Apply Layout</button>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div id="import-modal">
+  <div id="import-box">
+    <h3>Open <span>.knt</span> File</h3>
+    <div id="drop-zone">
+      <div class="drop-icon">📄</div>
+      <div style="font-weight:600">Drop your <strong>.knt</strong> file here</div>
+      <div style="font-size:0.72rem;margin-top:6px;opacity:.6">or click to browse files</div>
+      <input type="file" id="file-input" accept=".knt">
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="hbtn" onclick="document.getElementById('import-modal').classList.remove('show')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+const MAX   = 6;
+const COLORS = ['#c8f562','#7c6af5','#f5a623','#ff6b9d','#38d9f5','#ff9e5e'];
+const PLACEHOLDERS = [
+  'Start writing something brilliant…',
+  'Your thoughts go here…',
+  "What's on your mind?",
+  'Notes, ideas, everything…',
+  'Write freely…',
+  'Capture the moment…',
+];
+
+let notes        = [];   // {id, title, content}
+let noteSerial   = 0;    // ever-rising unique ID
+let dispCounter  = 0;    // "Note N" display number
+let freeMode     = false;
+let activeEditor = null; // currently focused contenteditable
+
+// Layouts definition
+const LAYOUTS = [
+  { label:'1',      cols:1, rows:1, colT:'1fr',               rowT:'1fr',           count:1 },
+  { label:'2H',     cols:2, rows:1, colT:'1fr 1fr',           rowT:'1fr',           count:2 },
+  { label:'2V',     cols:1, rows:2, colT:'1fr',               rowT:'1fr 1fr',       count:2 },
+  { label:'3H',     cols:3, rows:1, colT:'1fr 1fr 1fr',       rowT:'1fr',           count:3 },
+  { label:'3V',     cols:1, rows:3, colT:'1fr',               rowT:'1fr 1fr 1fr',   count:3 },
+  { label:'2+1',    cols:2, rows:2, colT:'1fr 1fr',           rowT:'1fr 1fr',       count:3,
+    areas:'"a a" "b c"' },
+  { label:'1+2',    cols:2, rows:2, colT:'1fr 1fr',           rowT:'1fr 1fr',       count:3,
+    areas:'"a b" "a c"' },
+  { label:'4 Grid', cols:2, rows:2, colT:'1fr 1fr',           rowT:'1fr 1fr',       count:4 },
+  { label:'4H',     cols:4, rows:1, colT:'repeat(4,1fr)',      rowT:'1fr',           count:4 },
+  { label:'4V',     cols:1, rows:4, colT:'1fr',               rowT:'repeat(4,1fr)', count:4 },
+  { label:'5 Mix',  cols:3, rows:2, colT:'1fr 1fr 1fr',       rowT:'1fr 1fr',       count:5,
+    areas:'"a b c" "d d e"' },
+  { label:'6 Grid', cols:3, rows:2, colT:'1fr 1fr 1fr',       rowT:'1fr 1fr',       count:6 },
+  { label:'6H',     cols:6, rows:1, colT:'repeat(6,1fr)',      rowT:'1fr',           count:6 },
+  { label:'6V',     cols:1, rows:6, colT:'1fr',               rowT:'repeat(6,1fr)', count:6 },
+  { label:'2Col×3', cols:2, rows:3, colT:'1fr 1fr',           rowT:'1fr 1fr 1fr',   count:6 },
+  { label:'3Col×2', cols:3, rows:2, colT:'1fr 1fr 1fr',       rowT:'1fr 1fr',       count:6 },
+];
+
+let currentLayout  = LAYOUTS[0];
+let selectedLayout = null;
+
+// ══════════════════════════════════════════════
+//  TOOLBAR SETUP (global, acts on activeEditor)
+// ══════════════════════════════════════════════
+function cmd(c, v) {
+  if (!activeEditor) {
+    const eds = document.querySelectorAll('.note-editor');
+    if (!eds.length) return;
+    activeEditor = eds[0];
+  }
+  activeEditor.focus();
+  document.execCommand(c, false, v ?? null);
+}
+
+function setupToolbar() {
+  document.getElementById('tb-bold')   .onclick = () => cmd('bold');
+  document.getElementById('tb-italic') .onclick = () => cmd('italic');
+  document.getElementById('tb-under')  .onclick = () => cmd('underline');
+  document.getElementById('tb-strike') .onclick = () => cmd('strikeThrough');
+  document.getElementById('tb-h1')     .onclick = () => cmd('formatBlock','h1');
+  document.getElementById('tb-h2')     .onclick = () => cmd('formatBlock','h2');
+  document.getElementById('tb-h3')     .onclick = () => cmd('formatBlock','h3');
+  document.getElementById('tb-ul')     .onclick = () => cmd('insertUnorderedList');
+  document.getElementById('tb-ol')     .onclick = () => cmd('insertOrderedList');
+  document.getElementById('tb-al')     .onclick = () => cmd('justifyLeft');
+  document.getElementById('tb-ac')     .onclick = () => cmd('justifyCenter');
+  document.getElementById('tb-ar')     .onclick = () => cmd('justifyRight');
+  document.getElementById('tb-aj')     .onclick = () => cmd('justifyFull');
+  document.getElementById('tb-indent') .onclick = () => cmd('indent');
+  document.getElementById('tb-outdent').onclick = () => cmd('outdent');
+  document.getElementById('tb-clear')  .onclick = () => cmd('removeFormat');
+  document.getElementById('tb-link')   .onclick = () => {
+    const url = prompt('Enter URL:');
+    if (url) cmd('createLink', url);
+  };
+
+  document.getElementById('ff').onchange = e => cmd('fontName', e.target.value);
+  document.getElementById('tc').oninput  = e => cmd('foreColor', e.target.value);
+  document.getElementById('hc').oninput  = e => cmd('hiliteColor', e.target.value);
+
+  document.getElementById('fs').onchange = e => {
+    if (!activeEditor) return;
+    activeEditor.focus();
+    const size = parseInt(e.target.value) || 15;
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount) {
+      const range = sel.getRangeAt(0);
+      const span = document.createElement('span');
+      span.style.fontSize = size + 'px';
+      try {
+        if (!range.collapsed) { range.surroundContents(span); }
+        else {
+          span.innerHTML = '&#8203;';
+          range.insertNode(span);
+          range.setStartAfter(span);
+          range.collapse(true);
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+      } catch(ex) {
+        document.execCommand('fontSize', false, '7');
+        activeEditor.querySelectorAll('font[size="7"]').forEach(el => {
+          el.removeAttribute('size');
+          el.style.fontSize = size + 'px';
+        });
+      }
+    }
+  };
+}
+
+// ══════════════════════════════════════════════
+//  NOTES
+// ══════════════════════════════════════════════
+function addNote(savedData) {
+  if (notes.length >= MAX) { toast('Max 6 panels!', 'err'); return; }
+
+  noteSerial++;
+  dispCounter++;
+  const id    = noteSerial;
+  const color = COLORS[notes.length % COLORS.length];
+  const title = savedData ? savedData.title : `Note ${dispCounter}`;
+  const content = savedData ? (savedData.content || '') : '';
+
+  notes.push({ id, title, content, dispNum: dispCounter });
+  renderAll();
+  if (!savedData) {
+    setTimeout(() => document.getElementById(`ed-${id}`)?.focus(), 50);
+  }
+}
+
+function removeNote(id) {
+  if (notes.length <= 1) { toast('Need at least 1 panel!', 'err'); return; }
+  notes = notes.filter(n => n.id !== id);
+  renumber();
+  renderAll();
+}
+
+function renumber() {
+  dispCounter = 0;
+  notes.forEach((n, i) => {
+    dispCounter++;
+    n.dispNum = dispCounter;
+    if (/^Note \d+$/.test(n.title)) n.title = `Note ${n.dispNum}`;
+    n._color = COLORS[i % COLORS.length];
+  });
+}
+
+// ══════════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════════
+function snapshotContent() {
+  document.querySelectorAll('.note-panel').forEach(p => {
+    const id = +p.dataset.id;
+    const n  = notes.find(x => x.id === id);
+    if (!n) return;
+    const ed = p.querySelector('.note-editor');
+    const ti = p.querySelector('.note-title');
+    if (ed) n.content = ed.innerHTML;
+    if (ti) n.title   = ti.value;
+  });
+}
+
+function renderAll() {
+  snapshotContent();
+
+  const gc = document.getElementById('grid-container');
+  // Remove free panels from canvas
+  document.querySelectorAll('.note-panel.free').forEach(p => p.remove());
+  gc.innerHTML = '';
+
+  if (freeMode) {
+    gc.style.display = 'none';
+    notes.forEach((n, i) => {
+      const p = buildPanel(n, i);
+      p.classList.add('free');
+      const savedPos = n._freePos;
+      if (savedPos) {
+        p.style.left = savedPos.left; p.style.top = savedPos.top;
+        p.style.width = savedPos.w;   p.style.height = savedPos.h;
+      } else {
+        p.style.left = (40 + i*34) + 'px'; p.style.top = (40 + i*34) + 'px';
+        p.style.width = '360px'; p.style.height = '300px';
+      }
+      document.getElementById('canvas').appendChild(p);
+      hookDragResize(p);
+    });
+  } else {
+    gc.style.display = '';
+    // Apply grid layout
+    applyGridToContainer(currentLayout);
+    notes.forEach((n, i) => {
+      const p = buildPanel(n, i);
+      // Apply grid-area if layout uses template areas
+      if (currentLayout.areas) {
+        const areaNames = 'abcdef';
+        p.style.gridArea = areaNames[i];
+      }
+      gc.appendChild(p);
+    });
+  }
+
+  updateUI();
+}
+
+function buildPanel(note, colorIndex) {
+  const color = note._color || COLORS[colorIndex % COLORS.length];
+  const ph    = PLACEHOLDERS[colorIndex % PLACEHOLDERS.length];
+
+  const div = document.createElement('div');
+  div.className = 'note-panel';
+  div.dataset.id = note.id;
+  div.innerHTML = `
+    <div class="note-header">
+      <span class="note-drag" title="Drag">⠿</span>
+      <div class="note-color-dot" style="background:${color}"></div>
+      <input class="note-title" id="ti-${note.id}" value="${escAttr(note.title)}" spellcheck="false" placeholder="Untitled…">
+      <button class="note-close" title="Close panel">✕</button>
+      <div class="resize-handle" title="Resize">⤡</div>
+    </div>
+    <div class="note-editor" id="ed-${note.id}" contenteditable="true" spellcheck="true"
+      data-placeholder="${ph}">${note.content}</div>
+    <div class="note-footer">
+      <span class="note-wc" id="wc-${note.id}">0 words</span>
+      <span class="note-si" id="si-${note.id}">✓ saved</span>
+    </div>`;
+
+  const ed  = div.querySelector('.note-editor');
+  const ti  = div.querySelector('.note-title');
+  const cls = div.querySelector('.note-close');
+
+  cls.onclick = () => removeNote(note.id);
+  ti.oninput  = () => { note.title = ti.value; };
+
+  ed.addEventListener('focus', () => {
+    activeEditor = ed;
+    document.querySelectorAll('.note-panel').forEach(p => p.classList.remove('focused'));
+    div.classList.add('focused');
+  });
+
+  let wcdebounce;
+  ed.addEventListener('input', () => {
+    note.content = ed.innerHTML;
+    clearTimeout(wcdebounce);
+    wcdebounce = setTimeout(() => {
+      updateWC(note.id, ed);
+      flashSI(note.id);
+    }, 800);
+  });
+
+  ed.addEventListener('keydown', e => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      document.execCommand('insertHTML', false, '&nbsp;&nbsp;&nbsp;&nbsp;');
+    }
+  });
+
+  setTimeout(() => updateWC(note.id, ed), 0);
+  return div;
+}
+
+function updateWC(id, ed) {
+  const el = document.getElementById(`wc-${id}`);
+  if (!el || !ed) return;
+  const txt = ed.innerText.trim();
+  const w   = txt ? txt.split(/\s+/).length : 0;
+  el.textContent = `${w}w · ${txt.length}c`;
+}
+
+function flashSI(id) {
+  const el = document.getElementById(`si-${id}`);
+  if (!el) return;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 1800);
+}
+
+// ══════════════════════════════════════════════
+//  GRID LAYOUT
+// ══════════════════════════════════════════════
+function applyGridToContainer(layout) {
+  const gc = document.getElementById('grid-container');
+  gc.style.gridTemplateColumns = layout.colT;
+  gc.style.gridTemplateRows    = layout.rowT;
+  gc.style.gridTemplateAreas   = layout.areas || 'none';
+}
+
+// ══════════════════════════════════════════════
+//  LAYOUT PICKER
+// ══════════════════════════════════════════════
+function buildLayoutPicker() {
+  const grid = document.getElementById('layout-grid');
+  grid.innerHTML = '';
+  LAYOUTS.forEach((l, i) => {
+    const opt = document.createElement('div');
+    opt.className = 'layout-opt' + (currentLayout === l ? ' selected' : '');
+
+    const preview = document.createElement('div');
+    preview.className = 'layout-preview';
+    preview.style.gridTemplateColumns = l.colT;
+    preview.style.gridTemplateRows    = l.rowT;
+    if (l.areas) preview.style.gridTemplateAreas = l.areas;
+
+    const cellCount = l.cols * l.rows;
+    const areaNames = 'abcdef';
+
+    if (l.areas) {
+      // Parse unique area names from template
+      const names = [...new Set(l.areas.replace(/["]/g,'').trim().split(/\s+/))];
+      names.forEach(name => {
+        const d = document.createElement('div');
+        d.style.gridArea = name;
+        preview.appendChild(d);
+      });
+    } else {
+      for (let c = 0; c < cellCount; c++) {
+        const d = document.createElement('div');
+        preview.appendChild(d);
+      }
+    }
+
+    opt.appendChild(preview);
+    opt.appendChild(document.createTextNode(l.label));
+
+    opt.onclick = () => {
+      document.querySelectorAll('.layout-opt').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      selectedLayout = l;
+    };
+
+    grid.appendChild(opt);
+  });
+}
+
+function toggleLayoutPanel() {
+  const panel = document.getElementById('layout-panel');
+  if (panel.classList.contains('show')) {
+    closeLayoutPanel();
+  } else {
+    buildLayoutPicker();
+    selectedLayout = null;
+    panel.classList.add('show');
+  }
+}
+
+function closeLayoutPanel() {
+  document.getElementById('layout-panel').classList.remove('show');
+  selectedLayout = null;
+}
+
+function applyLayout() {
+  if (!selectedLayout) { toast('Pick a layout first!', 'err'); return; }
+
+  currentLayout = selectedLayout;
+  const needed  = currentLayout.count;
+
+  // Add missing notes silently
+  while (notes.length < needed && notes.length < MAX) {
+    noteSerial++;
+    dispCounter++;
+    notes.push({ id: noteSerial, title: `Note ${dispCounter}`, content: '', dispNum: dispCounter });
+  }
+
+  renderAll();
+  closeLayoutPanel();
+  toast(`Layout "${currentLayout.label}" applied!`, 'ok');
+}
+
+// Close layout panel if clicking outside
+document.addEventListener('click', e => {
+  const panel  = document.getElementById('layout-panel');
+  const btn    = document.getElementById('btn-layout');
+  if (panel.classList.contains('show') && !panel.contains(e.target) && !btn.contains(e.target)) {
+    closeLayoutPanel();
+  }
+});
+
+// ══════════════════════════════════════════════
+//  FREE MODE
+// ══════════════════════════════════════════════
+function toggleFreeMode() {
+  freeMode = !freeMode;
+  const btn = document.getElementById('btn-free');
+  if (freeMode) {
+    btn.classList.add('active-free');
+    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><rect x="2" y="2" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M5 5l4 4M9 5l-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg> Lock Mode`;
+  } else {
+    btn.classList.remove('active-free');
+    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 5V2h3M9 2h3v3M12 9v3H9M5 12H2V9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg> Free Mode`;
+  }
+  renderAll();
+}
+
+// ══════════════════════════════════════════════
+//  DRAG & RESIZE (free mode)
+// ══════════════════════════════════════════════
+let zTop = 10;
+function bringToFront(el) { el.style.zIndex = ++zTop; }
+
+function hookDragResize(panel) {
+  // Drag via header (not title/close/resize)
+  const header = panel.querySelector('.note-header');
+  header.addEventListener('mousedown', e => {
+    const tag = e.target.tagName;
+    if (tag === 'INPUT' || tag === 'BUTTON' || e.target.classList.contains('resize-handle')) return;
+    e.preventDefault();
+    bringToFront(panel);
+    const ox = panel.offsetLeft, oy = panel.offsetTop;
+    const sx = e.clientX,        sy = e.clientY;
+    function move(e) {
+      const canvas = document.getElementById('canvas');
+      let l = ox + e.clientX - sx;
+      let t = oy + e.clientY - sy;
+      l = Math.max(0, Math.min(l, canvas.clientWidth  - 80));
+      t = Math.max(0, Math.min(t, canvas.clientHeight - 30));
+      panel.style.left = l + 'px';
+      panel.style.top  = t + 'px';
+    }
+    function up() {
+      saveFreePos(panel);
+      document.removeEventListener('mousemove', move);
+      document.removeEventListener('mouseup', up);
+    }
+    document.addEventListener('mousemove', move);
+    document.addEventListener('mouseup', up);
+  });
+
+  // Resize
+  const rh = panel.querySelector('.resize-handle');
+  rh.addEventListener('mousedown', e => {
+    e.preventDefault(); e.stopPropagation();
+    const sw = panel.offsetWidth, sh = panel.offsetHeight;
+    const sx = e.clientX, sy = e.clientY;
+    function move(e) {
+      panel.style.width  = Math.max(220, sw + e.clientX - sx) + 'px';
+      panel.style.height = Math.max(160, sh + e.clientY - sy) + 'px';
+    }
+    function up() {
+      saveFreePos(panel);
+      document.removeEventListener('mousemove', move);
+      document.removeEventListener('mouseup', up);
+    }
+    document.addEventListener('mousemove', move);
+    document.addEventListener('mouseup', up);
+  });
+
+  // Click to front
+  panel.addEventListener('mousedown', () => bringToFront(panel), true);
+}
+
+function saveFreePos(panel) {
+  const id = +panel.dataset.id;
+  const n  = notes.find(x => x.id === id);
+  if (n) n._freePos = { left: panel.style.left, top: panel.style.top, w: panel.style.width, h: panel.style.height };
+}
+
+// ══════════════════════════════════════════════
+//  SAVE / LOAD
+// ══════════════════════════════════════════════
+function saveAll() {
+  snapshotContent();
+
+  const data = {
+    version: 3,
+    app: "Kirtan's Note",
+    savedAt: new Date().toISOString(),
+    serial: noteSerial,
+    dispCounter,
+    freeMode,
+    layoutIndex: LAYOUTS.indexOf(currentLayout),
+    notes: notes.map(n => ({
+      id: n.id, dispNum: n.dispNum,
+      title: n.title, content: n.content,
+      freePos: n._freePos || null,
+    }))
+  };
+
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
+  a.download = `kirtans-note-${new Date().toISOString().slice(0,10)}.knt`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('✓ Saved & downloaded!', 'ok');
+}
+
+function setupImport() {
+  const modal    = document.getElementById('import-modal');
+  const dropZone = document.getElementById('drop-zone');
+  const fileInp  = document.getElementById('file-input');
+
+  modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('show'); });
+  dropZone.addEventListener('click', () => fileInp.click());
+  dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('drag'); });
+  dropZone.addEventListener('dragleave', ()  => dropZone.classList.remove('drag'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault(); dropZone.classList.remove('drag');
+    const f = e.dataTransfer.files[0];
+    if (f) loadKNT(f);
+  });
+  fileInp.addEventListener('change', e => {
+    if (e.target.files[0]) loadKNT(e.target.files[0]);
+    e.target.value = '';
+  });
+}
+
+function loadKNT(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.notes || !Array.isArray(data.notes)) throw new Error('bad');
+
+      notes       = [];
+      noteSerial  = data.serial || 0;
+      dispCounter = data.dispCounter || 0;
+
+      data.notes.forEach(saved => {
+        notes.push({
+          id: saved.id, title: saved.title,
+          content: saved.content || '',
+          dispNum: saved.dispNum || 0,
+          _freePos: saved.freePos || null,
+          _color: COLORS[(notes.length) % COLORS.length],
+        });
+      });
+
+      // Restore layout
+      const li = data.layoutIndex ?? 0;
+      currentLayout = LAYOUTS[li] || LAYOUTS[0];
+
+      // Restore free mode
+      if (data.freeMode && !freeMode) {
+        freeMode = true;
+        const btn = document.getElementById('btn-free');
+        btn.classList.add('active-free');
+        btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><rect x="2" y="2" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M5 5l4 4M9 5l-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg> Lock Mode`;
+      } else if (!data.freeMode && freeMode) {
+        freeMode = false;
+        const btn = document.getElementById('btn-free');
+        btn.classList.remove('active-free');
+        btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 5V2h3M9 2h3v3M12 9v3H9M5 12H2V9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg> Free Mode`;
+      }
+
+      document.getElementById('import-modal').classList.remove('show');
+      renderAll();
+      toast(`✓ ${notes.length} note${notes.length!==1?'s':''} loaded!`, 'ok');
+    } catch(err) {
+      toast('Could not read — is this a valid .knt?', 'err');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ══════════════════════════════════════════════
+//  UI HELPERS
+// ══════════════════════════════════════════════
+function updateUI() {
+  const c = notes.length;
+  document.getElementById('note-chip').textContent = `${c} note${c!==1?'s':''}`;
+  document.getElementById('btn-add') .disabled = c >= MAX;
+  document.getElementById('btn-save').disabled = c === 0;
+  const empty = document.getElementById('empty-state');
+  if (c === 0) empty.classList.add('show');
+  else         empty.classList.remove('show');
+}
+
+function toast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `show ${type||''}`;
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+function escAttr(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ══════════════════════════════════════════════
+//  KEYBOARD
+// ══════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault();
+    if (notes.length) saveAll();
+  }
+});
+
+// ══════════════════════════════════════════════
+//  BOOT — always blank, no localStorage
+// ══════════════════════════════════════════════
+setupToolbar();
+setupImport();
+updateUI();
+</script>
+</body>
+</html>
