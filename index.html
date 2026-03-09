@@ -315,6 +315,78 @@ body {
   display: flex; gap: 8px; justify-content: flex-end;
 }
 
+/* ══════════════ PRINT MODAL ══════════════ */
+#print-modal {
+  position: fixed; inset: 0;
+  background: #00000088;
+  z-index: 1000;
+  display: none; align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
+}
+#print-modal.show { display: flex; }
+
+#print-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+  max-width: 460px; width: 90%;
+  display: flex; flex-direction: column; gap: 18px;
+  box-shadow: 0 24px 64px #00000088;
+  animation: popIn .2s ease;
+}
+#print-box h3 { font-size: 1.1rem; font-weight: 800; }
+#print-box h3 span { color: var(--accent); }
+
+.print-options {
+  display: flex; flex-direction: column; gap: 10px;
+}
+.print-option-row {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 0.78rem; color: var(--text);
+}
+.print-option-row label { display: flex; align-items: center; gap: 8px; cursor: pointer; flex: 1; }
+.print-option-row select {
+  flex: 1; height: 28px; border-radius: 5px; border: 1px solid var(--border);
+  background: var(--surface2); color: var(--text); font-size: 0.73rem;
+  padding: 0 8px; font-family: 'Syne', sans-serif; outline: none; cursor: pointer;
+}
+.print-option-row select:focus { border-color: var(--accent2); }
+.print-option-row select option { background: #1c1c21; }
+
+.print-note-list {
+  display: flex; flex-direction: column; gap: 6px;
+  max-height: 180px; overflow-y: auto;
+  padding: 2px 0;
+}
+.print-note-list::-webkit-scrollbar { width: 3px; }
+.print-note-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.print-note-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 10px; border-radius: 7px;
+  background: var(--surface2); border: 1px solid var(--border);
+  cursor: pointer; transition: border-color .14s;
+  font-size: 0.76rem;
+}
+.print-note-item:hover { border-color: var(--accent2); }
+.print-note-item.selected { border-color: var(--accent); background: #c8f56210; }
+.print-note-item .pni-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.print-note-item .pni-title { flex: 1; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.print-note-item .pni-wc { font-size: 0.65rem; color: var(--muted); font-family: 'DM Mono', monospace; }
+
+.print-select-row {
+  display: flex; gap: 8px;
+}
+.print-select-row button {
+  font-family: 'Syne', sans-serif; font-size: 0.68rem; font-weight: 600;
+  background: transparent; border: 1px solid var(--border); color: var(--muted);
+  border-radius: 5px; padding: 3px 10px; cursor: pointer; transition: all .12s;
+}
+.print-select-row button:hover { border-color: var(--accent2); color: var(--accent2); }
+
+.print-divider { height: 1px; background: var(--border); }
+
 /* ══════════════ IMPORT MODAL ══════════════ */
 #import-modal {
   position: fixed; inset: 0;
@@ -382,6 +454,17 @@ body {
 #toast.ok { border-color: var(--accent); color: var(--accent); }
 #toast.err { border-color: var(--danger); color: var(--danger); }
 
+/* ══════════════ PRINT STYLES ══════════════ */
+@media print {
+  body * { visibility: hidden; }
+  #print-area, #print-area * { visibility: visible; }
+  #print-area {
+    position: fixed; inset: 0; z-index: 99999;
+    background: #fff; color: #000;
+    padding: 0; margin: 0;
+  }
+}
+
 /* scrollbars */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -411,6 +494,10 @@ body {
     <button class="hbtn" id="btn-open" onclick="document.getElementById('import-modal').classList.add('show')">
       <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1.5 3.5A1 1 0 012.5 2.5h2.086a1 1 0 01.707.293L6 3.5h3.5A1 1 0 0110.5 4.5v5a1 1 0 01-1 1h-7a1 1 0 01-1-1V3.5z" stroke="currentColor" stroke-width="1.4"/></svg>
       Open .knt
+    </button>
+    <button class="hbtn" id="btn-print" onclick="openPrintModal()" disabled>
+      <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><rect x="2" y="5" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M4 5V3a1 1 0 011-1h4a1 1 0 011 1v2" stroke="currentColor" stroke-width="1.4"/><path d="M4 9h6M4 11h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="10.5" cy="7.5" r="0.8" fill="currentColor"/></svg>
+      Print
     </button>
     <button class="hbtn primary" id="btn-save" onclick="saveAll()" disabled>
       <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2h6.5L10 3.5V10a1 1 0 01-1 1H3a1 1 0 01-1-1V2z" stroke="currentColor" stroke-width="1.4"/><rect x="4" y="7" width="4" height="4" rx="0.5" stroke="currentColor" stroke-width="1.4"/><rect x="3.5" y="2" width="4" height="2.5" rx="0.5" stroke="currentColor" stroke-width="1.4"/></svg>
@@ -517,6 +604,62 @@ body {
   </div>
 </div>
 
+<!-- PRINT MODAL -->
+<div id="print-modal">
+  <div id="print-box">
+    <h3>🖨️ Print <span>Notes</span></h3>
+
+    <div class="print-options">
+      <div class="print-option-row">
+        <label style="font-weight:600;color:var(--muted);font-size:0.72rem;letter-spacing:0.04em">SELECT NOTES TO PRINT</label>
+        <div class="print-select-row">
+          <button onclick="printSelectAll()">All</button>
+          <button onclick="printSelectNone()">None</button>
+        </div>
+      </div>
+      <div class="print-note-list" id="print-note-list"></div>
+    </div>
+
+    <div class="print-divider"></div>
+
+    <div class="print-options">
+      <div class="print-option-row">
+        <label style="min-width:90px;color:var(--muted);font-size:0.72rem">Layout</label>
+        <select id="print-layout-sel">
+          <option value="single">One note per page</option>
+          <option value="compact" selected>Compact (fit all on page)</option>
+          <option value="two">Two columns</option>
+        </select>
+      </div>
+      <div class="print-option-row">
+        <label style="min-width:90px;color:var(--muted);font-size:0.72rem">Theme</label>
+        <select id="print-theme-sel">
+          <option value="light" selected>Light (white bg)</option>
+          <option value="dark">Dark (preserve dark)</option>
+        </select>
+      </div>
+      <div class="print-option-row">
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:0.76rem">
+          <input type="checkbox" id="print-show-title" checked style="accent-color:var(--accent);width:14px;height:14px;">
+          Show note titles
+        </label>
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:0.76rem">
+          <input type="checkbox" id="print-show-date" checked style="accent-color:var(--accent);width:14px;height:14px;">
+          Show date
+        </label>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="hbtn" onclick="closePrintModal()">Cancel</button>
+      <button class="hbtn primary" onclick="executePrint()">
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><rect x="2" y="5" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M4 5V3a1 1 0 011-1h4a1 1 0 011 1v2" stroke="currentColor" stroke-width="1.4"/><path d="M4 9h6M4 11h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="10.5" cy="7.5" r="0.8" fill="currentColor"/></svg>
+        Print Now
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- IMPORT MODAL -->
 <div id="import-modal">
   <div id="import-box">
@@ -550,13 +693,12 @@ const PLACEHOLDERS = [
   'Capture the moment…',
 ];
 
-let notes        = [];   // {id, title, content}
-let noteSerial   = 0;    // ever-rising unique ID
-let dispCounter  = 0;    // "Note N" display number
+let notes        = [];
+let noteSerial   = 0;
+let dispCounter  = 0;
 let freeMode     = false;
-let activeEditor = null; // currently focused contenteditable
+let activeEditor = null;
 
-// Layouts definition
 const LAYOUTS = [
   { label:'1',      cols:1, rows:1, colT:'1fr',               rowT:'1fr',           count:1 },
   { label:'2H',     cols:2, rows:1, colT:'1fr 1fr',           rowT:'1fr',           count:2 },
@@ -583,7 +725,7 @@ let currentLayout  = LAYOUTS[0];
 let selectedLayout = null;
 
 // ══════════════════════════════════════════════
-//  TOOLBAR SETUP (global, acts on activeEditor)
+//  TOOLBAR
 // ══════════════════════════════════════════════
 function cmd(c, v) {
   if (!activeEditor) {
@@ -707,7 +849,6 @@ function renderAll() {
   snapshotContent();
 
   const gc = document.getElementById('grid-container');
-  // Remove free panels from canvas
   document.querySelectorAll('.note-panel.free').forEach(p => p.remove());
   gc.innerHTML = '';
 
@@ -729,11 +870,9 @@ function renderAll() {
     });
   } else {
     gc.style.display = '';
-    // Apply grid layout
     applyGridToContainer(currentLayout);
     notes.forEach((n, i) => {
       const p = buildPanel(n, i);
-      // Apply grid-area if layout uses template areas
       if (currentLayout.areas) {
         const areaNames = 'abcdef';
         p.style.gridArea = areaNames[i];
@@ -846,7 +985,6 @@ function buildLayoutPicker() {
     const areaNames = 'abcdef';
 
     if (l.areas) {
-      // Parse unique area names from template
       const names = [...new Set(l.areas.replace(/["]/g,'').trim().split(/\s+/))];
       names.forEach(name => {
         const d = document.createElement('div');
@@ -895,7 +1033,6 @@ function applyLayout() {
   currentLayout = selectedLayout;
   const needed  = currentLayout.count;
 
-  // Add missing notes silently
   while (notes.length < needed && notes.length < MAX) {
     noteSerial++;
     dispCounter++;
@@ -907,7 +1044,6 @@ function applyLayout() {
   toast(`Layout "${currentLayout.label}" applied!`, 'ok');
 }
 
-// Close layout panel if clicking outside
 document.addEventListener('click', e => {
   const panel  = document.getElementById('layout-panel');
   const btn    = document.getElementById('btn-layout');
@@ -933,13 +1069,12 @@ function toggleFreeMode() {
 }
 
 // ══════════════════════════════════════════════
-//  DRAG & RESIZE (free mode)
+//  DRAG & RESIZE
 // ══════════════════════════════════════════════
 let zTop = 10;
 function bringToFront(el) { el.style.zIndex = ++zTop; }
 
 function hookDragResize(panel) {
-  // Drag via header (not title/close/resize)
   const header = panel.querySelector('.note-header');
   header.addEventListener('mousedown', e => {
     const tag = e.target.tagName;
@@ -966,7 +1101,6 @@ function hookDragResize(panel) {
     document.addEventListener('mouseup', up);
   });
 
-  // Resize
   const rh = panel.querySelector('.resize-handle');
   rh.addEventListener('mousedown', e => {
     e.preventDefault(); e.stopPropagation();
@@ -985,7 +1119,6 @@ function hookDragResize(panel) {
     document.addEventListener('mouseup', up);
   });
 
-  // Click to front
   panel.addEventListener('mousedown', () => bringToFront(panel), true);
 }
 
@@ -1066,11 +1199,9 @@ function loadKNT(file) {
         });
       });
 
-      // Restore layout
       const li = data.layoutIndex ?? 0;
       currentLayout = LAYOUTS[li] || LAYOUTS[0];
 
-      // Restore free mode
       if (data.freeMode && !freeMode) {
         freeMode = true;
         const btn = document.getElementById('btn-free');
@@ -1094,13 +1225,139 @@ function loadKNT(file) {
 }
 
 // ══════════════════════════════════════════════
+//  PRINT
+// ══════════════════════════════════════════════
+let printSelected = new Set();
+
+function openPrintModal() {
+  snapshotContent();
+  printSelected = new Set(notes.map(n => n.id));
+  buildPrintNoteList();
+  document.getElementById('print-modal').classList.add('show');
+}
+
+function closePrintModal() {
+  document.getElementById('print-modal').classList.remove('show');
+}
+
+function buildPrintNoteList() {
+  const list = document.getElementById('print-note-list');
+  list.innerHTML = '';
+  notes.forEach((n, i) => {
+    const color = n._color || COLORS[i % COLORS.length];
+    const txt   = n.content.replace(/<[^>]+>/g,'').trim();
+    const wc    = txt ? txt.split(/\s+/).length : 0;
+
+    const item = document.createElement('div');
+    item.className = 'print-note-item' + (printSelected.has(n.id) ? ' selected' : '');
+    item.innerHTML = `
+      <div class="pni-dot" style="background:${color}"></div>
+      <span class="pni-title">${escAttr(n.title || 'Untitled')}</span>
+      <span class="pni-wc">${wc}w</span>
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" class="pni-check" style="flex-shrink:0;opacity:${printSelected.has(n.id)?1:0.15}">
+        <circle cx="7" cy="7" r="6" stroke="${printSelected.has(n.id)?'#c8f562':'#6b6b78'}" stroke-width="1.4"/>
+        ${printSelected.has(n.id) ? '<path d="M4 7l2 2 4-4" stroke="#c8f562" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>' : ''}
+      </svg>`;
+
+    item.onclick = () => {
+      if (printSelected.has(n.id)) printSelected.delete(n.id);
+      else printSelected.add(n.id);
+      buildPrintNoteList();
+    };
+    list.appendChild(item);
+  });
+}
+
+function printSelectAll()  { printSelected = new Set(notes.map(n => n.id)); buildPrintNoteList(); }
+function printSelectNone() { printSelected = new Set(); buildPrintNoteList(); }
+
+function executePrint() {
+  if (printSelected.size === 0) { toast('Select at least one note!', 'err'); return; }
+
+  const layoutMode = document.getElementById('print-layout-sel').value;
+  const theme      = document.getElementById('print-theme-sel').value;
+  const showTitle  = document.getElementById('print-show-title').checked;
+  const showDate   = document.getElementById('print-show-date').checked;
+
+  const toPrint = notes.filter(n => printSelected.has(n.id));
+  const isDark  = theme === 'dark';
+
+  const bgCol   = isDark ? '#0d0d0f' : '#ffffff';
+  const textCol = isDark ? '#eeeef0' : '#1a1a1a';
+  const borderC = isDark ? '#2a2a32' : '#e0e0e8';
+  const headerBg= isDark ? '#141417' : '#f4f4f8';
+  const mutedC  = isDark ? '#6b6b78' : '#888890';
+
+  let gridCols = '1fr';
+  if (layoutMode === 'two')     gridCols = '1fr 1fr';
+  if (layoutMode === 'compact' && toPrint.length > 1) gridCols = toPrint.length <= 2 ? '1fr 1fr' : '1fr 1fr 1fr';
+
+  const notesHTML = toPrint.map((n, i) => {
+    const color = n._color || COLORS[i % COLORS.length];
+    const titleHTML = showTitle ? `
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 14px 8px;border-bottom:1px solid ${borderC};background:${headerBg};">
+        <div style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0"></div>
+        <span style="font-weight:700;font-size:13px;font-family:'Syne',sans-serif;color:${textCol}">${escAttr(n.title || 'Untitled')}</span>
+      </div>` : '';
+    const pageBreak = layoutMode === 'single' && i < toPrint.length - 1 ? 'page-break-after:always;' : '';
+    return `
+      <div style="border:1px solid ${borderC};border-radius:8px;overflow:hidden;background:${bgCol};${pageBreak}${layoutMode==='single'?'min-height:100vh;':''}">
+        ${titleHTML}
+        <div style="padding:14px 16px;font-size:14px;line-height:1.76;color:${textCol};font-family:'Lora',serif;">${n.content || '<em style="color:'+mutedC+'">Empty note</em>'}</div>
+      </div>`;
+  }).join('');
+
+  const dateStr = showDate ? `<div style="font-size:11px;color:${mutedC};font-family:'DM Mono',monospace;margin-bottom:16px;">Printed ${new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})}</div>` : '';
+
+  const printHTML = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Kirtan's Notes — Print</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:${bgCol}; color:${textCol}; padding:24px 28px; font-family:'Lora',serif; }
+  .notes-grid { display:grid; grid-template-columns:${gridCols}; gap:16px; }
+  @media print {
+    body { padding:0; }
+    @page { margin:16mm; }
+  }
+  h1,h2,h3 { font-family:'Syne',sans-serif; }
+  ul,ol { padding-left:1.4em; }
+  a { color:${isDark?'#7c6af5':'#5a4fd0'}; }
+</style>
+</head>
+<body>
+${dateStr}
+<div class="notes-grid">${notesHTML}</div>
+</body>
+</html>`;
+
+  const win = window.open('', '_blank', 'width=900,height=700');
+  if (!win) { toast('Pop-up blocked! Allow pop-ups and try again.', 'err'); return; }
+  win.document.write(printHTML);
+  win.document.close();
+  win.onload = () => { win.focus(); win.print(); };
+
+  closePrintModal();
+  toast('🖨️ Print dialog opened!', 'ok');
+}
+
+// Close print modal on backdrop click
+document.getElementById('print-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('print-modal')) closePrintModal();
+});
+
+// ══════════════════════════════════════════════
 //  UI HELPERS
 // ══════════════════════════════════════════════
 function updateUI() {
   const c = notes.length;
   document.getElementById('note-chip').textContent = `${c} note${c!==1?'s':''}`;
-  document.getElementById('btn-add') .disabled = c >= MAX;
-  document.getElementById('btn-save').disabled = c === 0;
+  document.getElementById('btn-add')  .disabled = c >= MAX;
+  document.getElementById('btn-save') .disabled = c === 0;
+  document.getElementById('btn-print').disabled = c === 0;
   const empty = document.getElementById('empty-state');
   if (c === 0) empty.classList.add('show');
   else         empty.classList.remove('show');
@@ -1126,10 +1383,14 @@ document.addEventListener('keydown', e => {
     e.preventDefault();
     if (notes.length) saveAll();
   }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+    e.preventDefault();
+    if (notes.length) openPrintModal();
+  }
 });
 
 // ══════════════════════════════════════════════
-//  BOOT — always blank, no localStorage
+//  BOOT
 // ══════════════════════════════════════════════
 setupToolbar();
 setupImport();
