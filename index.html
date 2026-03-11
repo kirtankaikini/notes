@@ -92,7 +92,6 @@ body {
 }
 
 /* ══════════════ TOOLBAR ══════════════ */
-/* FIX 4: toolbar-wrapper is in normal flow, no fixed positioning */
 #toolbar-wrapper {
   flex-shrink: 0;
   border-bottom: 1px solid var(--border);
@@ -108,7 +107,6 @@ body {
   border-bottom-width: 0;
 }
 
-/* FIX 4: "Show Toolbar" bar is in normal flow, not fixed */
 #toolbar-show-bar {
   display: none;
   background: var(--surface);
@@ -202,6 +200,9 @@ body {
   animation: panelIn .2s ease;
 }
 .note-panel.focused { border-color: #7c6af555; }
+/* Change 5: drag styles */
+.note-panel.dragging { opacity: 0.45; border-color: var(--accent2); }
+.note-panel.drag-over { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
 
 @keyframes panelIn {
   from { opacity:0; transform:scale(.97); }
@@ -215,12 +216,15 @@ body {
   padding: 0 10px; gap: 6px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0; user-select: none;
+  cursor: grab;
 }
+.note-header:active { cursor: grabbing; }
 .note-color-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .note-title {
   flex: 1; background: transparent; border: none;
   color: var(--text); font-size: 0.82rem; font-family: 'Syne', sans-serif;
   font-weight: 700; outline: none; min-width: 0;
+  cursor: text;
 }
 .note-title:focus { color: var(--accent2); }
 .note-close {
@@ -279,8 +283,7 @@ body {
   display: none;
   flex-direction: column;
   gap: 14px;
-  /* FIX 6: never overflow narrow phones */
-  min-width: min(420px, 92vw);
+  min-width: min(520px, 92vw);
   max-width: 96vw;
   max-height: 88vh;
   overflow-y: auto;
@@ -329,7 +332,7 @@ body {
 .layout-opt:hover .layout-preview div { background: var(--accent2); opacity: .7; }
 .layout-opt.selected .layout-preview div { background: var(--accent); }
 
-/* FIX 3: Simplified custom layout editor */
+/* ══════════════ CHANGE 1: VISUAL GRID BUILDER ══════════════ */
 #custom-layout-editor {
   background: var(--surface2);
   border: 1px solid var(--border);
@@ -339,10 +342,11 @@ body {
   flex-direction: column;
   gap: 12px;
 }
-#custom-layout-editor .cl-row {
+
+.cl-controls-row {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
 }
-#custom-layout-editor label {
+.cl-controls-row label {
   font-size: 0.72rem; color: var(--muted); font-weight: 600; white-space: nowrap;
 }
 .cl-input {
@@ -359,6 +363,71 @@ body {
 }
 .cl-name-input:focus { border-color: var(--accent2); }
 
+/* Visual cell grid for the builder */
+#vgb-grid {
+  display: grid;
+  gap: 4px;
+  user-select: none;
+}
+
+.vgb-cell {
+  border: 1.5px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  cursor: pointer;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  font-family: 'DM Mono', monospace;
+  color: var(--muted);
+  transition: all .12s;
+  position: relative;
+}
+.vgb-cell:hover { border-color: var(--accent2); background: #7c6af510; }
+.vgb-cell.selected { border-color: var(--accent2); background: #7c6af520; color: var(--accent2); }
+.vgb-cell.merged { border-color: var(--accent); background: #c8f56218; color: var(--accent); font-weight: 700; }
+.vgb-cell.merged-hidden { display: none; }
+
+.vgb-merge-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.58rem;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+/* Builder action row */
+.vgb-actions {
+  display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+}
+
+/* Merge groups list */
+#vgb-groups-list {
+  display: flex; flex-direction: column; gap: 5px;
+  max-height: 90px; overflow-y: auto;
+}
+.vgb-group-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 8px; border-radius: 6px;
+  background: var(--bg); border: 1px solid var(--border);
+  font-size: 0.7rem;
+}
+.vgb-group-item .vgi-label { flex: 1; font-weight: 600; color: var(--accent); }
+.vgb-group-item .vgi-cells { color: var(--muted); font-family: 'DM Mono', monospace; font-size: 0.62rem; }
+.vgb-group-item .vgi-del {
+  width: 18px; height: 18px; border-radius: 50%; border: none;
+  background: transparent; color: var(--muted); cursor: pointer;
+  font-size: 11px; display: flex; align-items: center; justify-content: center;
+  transition: all .12s;
+}
+.vgb-group-item .vgi-del:hover { background: var(--danger); color: #fff; }
+
+/* Custom preview box */
 #custom-preview-box {
   border: 1px dashed var(--border);
   border-radius: 6px;
@@ -370,6 +439,7 @@ body {
   background: var(--bg);
 }
 #custom-preview-box div { background: var(--accent2); opacity: .4; border-radius: 3px; }
+#custom-preview-box .preview-merged { background: var(--accent); opacity: .55; }
 
 #custom-saved-list {
   display: flex; flex-direction: column; gap: 5px;
@@ -573,7 +643,6 @@ body {
   .hbtn { padding: 5px 8px; font-size: 0.68rem; gap: 3px; }
   .hbtn svg { display: none; }
 
-  /* FIX 5: Mobile scroll — notes stack and are scrollable */
   #canvas { overflow-y: auto; }
   #grid-container {
     grid-template-columns: 1fr !important;
@@ -590,7 +659,9 @@ body {
     min-height: 280px;
   }
 
-  /* FIX 6: Layout panel never overflows */
+  /* No drag cursor on mobile */
+  .note-header { cursor: default; }
+
   #layout-panel { min-width: min(420px, 92vw); width: 95vw; }
   .layout-grid { grid-template-columns: repeat(3, 1fr); }
   #print-box { padding: 18px; }
@@ -621,7 +692,6 @@ body {
 <!-- HEADER -->
 <div id="header">
   <div id="logo">Kirtan's<span> Note</span></div>
-  <!-- FIX 7: New Note + New Session buttons -->
   <button class="hbtn" id="btn-add" onclick="addNote()">
     <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
     New Note
@@ -641,7 +711,6 @@ body {
   <span class="note-chip" id="note-chip">0 notes</span>
   <span id="autosave-badge">✓ autosaved</span>
   <div id="header-right">
-    <!-- FIX 7: Open .knt with guard -->
     <button class="hbtn" id="btn-open" onclick="guardedOpenKNT()">
       <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1.5 3.5A1 1 0 012.5 2.5h2.086a1 1 0 01.707.293L6 3.5h3.5A1 1 0 0110.5 4.5v5a1 1 0 01-1 1h-7a1 1 0 01-1-1V3.5z" stroke="currentColor" stroke-width="1.4"/></svg>
       Open .knt
@@ -660,7 +729,6 @@ body {
 <!-- TOOLBAR WRAPPER -->
 <div id="toolbar-wrapper">
   <div id="toolbar">
-    <!-- Hide toolbar button -->
     <button id="tb-toggle-btn" class="tb-btn" onmousedown="event.preventDefault()" onclick="toggleToolbar()" title="Hide Toolbar" style="width:22px;height:22px;font-size:9px;margin-right:2px;flex-shrink:0">▲</button>
     <div class="tb-sep"></div>
     <select class="tb-select" id="ff" style="width:120px" title="Font Family">
@@ -689,8 +757,7 @@ body {
       <option value="Impact, sans-serif">Impact</option>
       <option value="Comic Sans MS, cursive">Comic Sans</option>
     </select>
-    <input class="tb-num" type="number" id="fs" value="15" min="6" max="120" title="Font Size — type size then press Enter or click ✓">
-    <button class="tb-btn" id="tb-apply-fs" title="Apply font size" style="font-size:11px;color:var(--accent)" onmousedown="event.preventDefault()">✓</button>
+    <input class="tb-num" type="number" id="fs" value="15" min="6" max="120" title="Font Size">
     <div class="tb-sep"></div>
     <button class="tb-btn" id="tb-bold"      title="Bold (Ctrl+B)" onmousedown="event.preventDefault()"><b>B</b></button>
     <button class="tb-btn" id="tb-italic"    title="Italic (Ctrl+I)" onmousedown="event.preventDefault()"><i style="font-style:italic">I</i></button>
@@ -735,7 +802,7 @@ body {
   </div>
 </div>
 
-<!-- FIX 4: "Show Toolbar" bar in normal document flow -->
+<!-- Show Toolbar bar -->
 <div id="toolbar-show-bar">
   <button onclick="showToolbar()">▼ Show Toolbar</button>
 </div>
@@ -764,22 +831,41 @@ body {
   <div class="layout-section-title">Preset Layouts</div>
   <div class="layout-grid" id="layout-grid"></div>
 
-  <!-- FIX 3: Simplified custom layout editor — just cols × rows + name + save -->
-  <div class="layout-section-title">Custom Layout</div>
+  <!-- CHANGE 1: Visual Grid Builder -->
+  <div class="layout-section-title">Custom Layout Builder</div>
   <div id="custom-layout-editor">
-    <div class="cl-row">
-      <label>Columns</label>
+    <!-- Controls row: cols, rows, name -->
+    <div class="cl-controls-row">
+      <label>Cols</label>
       <input class="cl-input" type="number" id="cl-cols" value="2" min="1" max="6">
       <label>Rows</label>
       <input class="cl-input" type="number" id="cl-rows" value="2" min="1" max="6">
       <label>Name</label>
       <input class="cl-name-input" type="text" id="cl-name" placeholder="My Layout">
-      <button class="hbtn primary" style="font-size:0.68rem;padding:4px 12px" onmousedown="event.preventDefault()" onclick="saveCustomLayout()">
+    </div>
+    <!-- Instruction -->
+    <div style="font-size:0.68rem;color:var(--muted);line-height:1.5;">
+      Click cells to <b style="color:var(--accent2)">select</b>, then <b style="color:var(--accent)">Merge Selected</b> to combine into one panel. Repeat for other groups.
+    </div>
+    <!-- Visual cell grid -->
+    <div id="vgb-grid"></div>
+    <!-- Action buttons -->
+    <div class="vgb-actions">
+      <button class="hbtn" style="font-size:0.68rem;padding:4px 10px" onmousedown="event.preventDefault()" onclick="vgbMergeSelected()">
+        ⊞ Merge Selected
+      </button>
+      <button class="hbtn" style="font-size:0.68rem;padding:4px 10px;border-color:#ff6b6b22;color:var(--danger)" onmousedown="event.preventDefault()" onclick="vgbReset()">
+        ✕ Reset
+      </button>
+      <button class="hbtn primary" style="font-size:0.68rem;padding:4px 12px;margin-left:auto" onmousedown="event.preventDefault()" onclick="saveCustomLayout()">
         <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Save Layout
       </button>
     </div>
-    <!-- Live mini-preview -->
+    <!-- Merge groups list -->
+    <div id="vgb-groups-list"></div>
+    <!-- Live CSS grid preview -->
+    <div style="font-size:0.68rem;color:var(--muted);margin-top:2px">Preview:</div>
     <div id="custom-preview-box"></div>
     <!-- Saved custom layouts list -->
     <div id="custom-saved-list"></div>
@@ -791,12 +877,12 @@ body {
   </div>
 </div>
 
-<!-- FIX 7: Confirm dialog (Save & Continue / Discard & Continue / Cancel) -->
+<!-- CONFIRM DIALOG -->
 <div id="confirm-modal">
   <div id="confirm-box">
     <h3>⚠️ Unsaved <span>Session</span></h3>
     <p id="confirm-msg">You have notes with content in the current session. What would you like to do before continuing?</p>
-    <div class="confirm-actions">
+    <div class="confirm-actions" id="confirm-actions">
       <button class="confirm-btn save-btn" id="confirm-save-btn">
         <span class="cb-icon">💾</span>
         <span class="cb-text">
@@ -920,7 +1006,7 @@ let notes        = [];
 let noteSerial   = 0;
 let dispCounter  = 0;
 let activeEditor = null;
-let savedRanges  = new Map(); // editor element -> saved Range
+let savedRanges  = new Map();
 let toolbarVisible = true;
 
 const LAYOUTS = [
@@ -947,11 +1033,7 @@ let currentLayout  = LAYOUTS[0];
 let selectedLayout = null;
 
 // ══════════════════════════════════════════════
-//  FIX 1: SELECTION MANAGEMENT
-//  Use selectionchange to track selection inside editors.
-//  On toolbar button mousedown we call e.preventDefault() (in HTML)
-//  so the editor never loses focus. Then on click we restore the
-//  saved range before applying the format.
+//  SELECTION MANAGEMENT
 // ══════════════════════════════════════════════
 
 document.addEventListener('selectionchange', () => {
@@ -968,7 +1050,6 @@ document.addEventListener('selectionchange', () => {
     }
     node = node.parentElement;
   }
-  // If focus moved away from editor to toolbar/header, keep activeEditor & savedRanges intact
 });
 
 function saveSelection(editor) {
@@ -982,7 +1063,6 @@ function saveSelection(editor) {
   }
 }
 
-// Restore saved selection. Returns the restored range or null.
 function restoreSelection(editor) {
   const saved = savedRanges.get(editor);
   if (!saved) return null;
@@ -1008,7 +1088,6 @@ function getActiveEditor() {
 function toggleInlineTag(tagName) {
   const editor = getActiveEditor();
   if (!editor) return;
-  // FIX 1: focus editor first, then restore saved range
   editor.focus();
   restoreSelection(editor);
 
@@ -1076,8 +1155,6 @@ function unwrapTag(range, tagName, editor) {
   }
 }
 
-// FIX 1 & 2: applyInlineStyle — always focuses editor and restores selection before applying
-// FIX 2: correctly wraps selected text in a <span> with the given style property
 function applyInlineStyle(prop, value, editorOverride) {
   const editor = editorOverride || getActiveEditor();
   if (!editor) return;
@@ -1088,7 +1165,6 @@ function applyInlineStyle(prop, value, editorOverride) {
   const sel = window.getSelection();
   if (!sel) return;
 
-  // If still no range or range outside editor, place cursor at end
   let r;
   if (sel.rangeCount > 0) {
     r = sel.getRangeAt(0);
@@ -1106,7 +1182,6 @@ function applyInlineStyle(prop, value, editorOverride) {
   }
 
   if (r.collapsed) {
-    // No selection — insert a seed span for future typing
     const span = document.createElement('span');
     span.style[prop] = value;
     span.appendChild(document.createTextNode('\u200B'));
@@ -1120,7 +1195,6 @@ function applyInlineStyle(prop, value, editorOverride) {
     return;
   }
 
-  // FIX 2: wrap selection in a span with the inline style
   try {
     const span = document.createElement('span');
     span.style[prop] = value;
@@ -1135,7 +1209,6 @@ function applyInlineStyle(prop, value, editorOverride) {
   triggerNoteInput(editor);
 }
 
-// FIX 2: applyFontFamily — if text is selected wrap it; otherwise apply to whole editor
 function applyFontFamily(fontValue, editorOverride) {
   const editor = editorOverride || getActiveEditor();
   if (!editor || !fontValue) return;
@@ -1150,11 +1223,19 @@ function applyFontFamily(fontValue, editorOverride) {
   if (hasSelection) {
     applyInlineStyle('fontFamily', fontValue, editor);
   } else {
-    // Apply to the whole editor element directly
     editor.style.fontFamily = fontValue;
     triggerNoteInput(editor);
   }
 }
+
+// ══════════════════════════════════════════════
+//  FIXED applyBlockFormat
+//  Walk up from cursor's startContainer to find the nearest
+//  block-level element (H1–H6, P, DIV, LI) that is a direct
+//  child of the editor. Replace it with a new tag preserving
+//  innerHTML. Fall back to wrapping if none found.
+// ══════════════════════════════════════════════
+const BLOCK_TAGS = new Set(['P','DIV','H1','H2','H3','H4','H5','H6','LI','BLOCKQUOTE','PRE']);
 
 function applyBlockFormat(tag) {
   const editor = getActiveEditor();
@@ -1165,27 +1246,36 @@ function applyBlockFormat(tag) {
   if (!sel || sel.rangeCount === 0) return;
   const r = sel.getRangeAt(0);
 
-  let block = r.startContainer;
-  while (block && block !== editor) {
-    if (block.nodeType === 1) {
-      const display = window.getComputedStyle(block).display;
-      if (display === 'block' || display === 'list-item') break;
+  // Walk up from cursor to find a block element that is a DIRECT child of the editor
+  let node = r.startContainer;
+  let blockEl = null;
+  while (node && node !== editor) {
+    if (node.nodeType === 1 && BLOCK_TAGS.has(node.tagName) && node.parentNode === editor) {
+      blockEl = node;
+      break;
     }
-    block = block.parentNode;
+    node = node.parentNode;
   }
-  if (!block || block === editor) {
-    const el = document.createElement(tag);
-    try { r.surroundContents(el); }
-    catch(e) { const frag = r.extractContents(); el.appendChild(frag); r.insertNode(el); }
-  } else if (['H1','H2','H3','P','DIV'].includes(block.tagName)) {
-    const el = document.createElement(tag);
-    el.innerHTML = block.innerHTML;
-    block.parentNode.replaceChild(el, block);
+
+  if (blockEl) {
+    // Replace the block element preserving its innerHTML and inline styles
+    const newEl = document.createElement(tag);
+    newEl.innerHTML = blockEl.innerHTML;
+    if (blockEl.style && blockEl.style.cssText) {
+      newEl.style.cssText = blockEl.style.cssText;
+    }
+    editor.replaceChild(newEl, blockEl);
+    // Place cursor at end of the new element
     const newRange = document.createRange();
-    newRange.setStart(el, el.childNodes.length);
+    newRange.setStart(newEl, newEl.childNodes.length);
     newRange.collapse(true);
     sel.removeAllRanges();
     sel.addRange(newRange);
+  } else {
+    // Fallback: wrap selection
+    const el = document.createElement(tag);
+    try { r.surroundContents(el); }
+    catch(e) { const frag = r.extractContents(); el.appendChild(frag); r.insertNode(el); }
   }
   triggerNoteInput(editor);
 }
@@ -1329,12 +1419,70 @@ function triggerNoteInput(editor) {
 }
 
 // ══════════════════════════════════════════════
-//  FIX 1 & 2: TOOLBAR SETUP
-//  All tb-btn elements have onmousedown=preventDefault() in HTML.
-//  Here we just wire up the click handlers.
+//  PERSISTENT FORMAT STATE (Word-style)
+//  currentFormat stores the active format choices.
+//  When typing with a collapsed cursor, new text is
+//  wrapped in a span carrying these styles.
+// ══════════════════════════════════════════════
+const currentFormat = {
+  fontSize:       '15px',
+  fontFamily:     '',
+  textColor:      '#eeeef0',
+  highlightColor: ''
+};
+
+// Apply currentFormat as inline styles on a new span before text is inserted.
+// Called from the editor keydown handler for printable characters.
+function ensureFormatSpan(editor) {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return;
+  const r = sel.getRangeAt(0);
+  if (!r.collapsed) return; // only for collapsed cursors (no selection)
+  if (!editor.contains(r.startContainer)) return;
+
+  // Check if we're already inside a span with matching styles — if so, skip
+  let node = r.startContainer;
+  while (node && node !== editor) {
+    if (node.nodeType === 1 && node.tagName === 'SPAN') {
+      // We're inside a span — patch its styles to match currentFormat
+      if (currentFormat.fontSize)       node.style.fontSize       = currentFormat.fontSize;
+      if (currentFormat.fontFamily)     node.style.fontFamily      = currentFormat.fontFamily;
+      if (currentFormat.textColor && currentFormat.textColor !== '#eeeef0')
+                                        node.style.color           = currentFormat.textColor;
+      if (currentFormat.highlightColor) node.style.backgroundColor = currentFormat.highlightColor;
+      return;
+    }
+    node = node.parentNode;
+  }
+
+  // Not inside a span — create one
+  const needsSpan = (currentFormat.fontFamily) ||
+    (currentFormat.fontSize && currentFormat.fontSize !== '15px') ||
+    (currentFormat.textColor && currentFormat.textColor !== '#eeeef0') ||
+    (currentFormat.highlightColor);
+
+  if (!needsSpan) return;
+
+  const span = document.createElement('span');
+  if (currentFormat.fontSize)       span.style.fontSize       = currentFormat.fontSize;
+  if (currentFormat.fontFamily)     span.style.fontFamily      = currentFormat.fontFamily;
+  if (currentFormat.textColor && currentFormat.textColor !== '#eeeef0')
+                                    span.style.color           = currentFormat.textColor;
+  if (currentFormat.highlightColor) span.style.backgroundColor = currentFormat.highlightColor;
+
+  span.appendChild(document.createTextNode('\u200B'));
+  r.insertNode(span);
+  const newR = document.createRange();
+  newR.setStart(span.firstChild, 1);
+  newR.setEnd(span.firstChild, 1);
+  sel.removeAllRanges();
+  sel.addRange(newR);
+}
+
+// ══════════════════════════════════════════════
+//  TOOLBAR SETUP
 // ══════════════════════════════════════════════
 function setupToolbar() {
-  // Helper: focus editor + restore selection, then run fn
   function tbAction(fn) {
     return () => {
       const ed = getActiveEditor();
@@ -1364,41 +1512,54 @@ function setupToolbar() {
   document.getElementById('tb-clear')  .onclick = tbAction(() => clearFormatting());
   document.getElementById('tb-link')   .onclick = () => insertLink();
 
-  // FIX 2: Font family dropdown
-  // Track which editor was active when user opened the dropdown
+  // ── Font family: auto-apply on change, keep dropdown showing current value ──
   let ffTargetEditor = null;
   const ffSelect = document.getElementById('ff');
   ffSelect.addEventListener('mousedown', () => { ffTargetEditor = getActiveEditor(); });
   ffSelect.addEventListener('change', e => {
     const v = e.target.value;
     if (!v) return;
+    // Update persistent format state
+    currentFormat.fontFamily = v;
     const ed = ffTargetEditor || getActiveEditor();
-    // Reset dropdown visually
-    ffSelect.value = '';
+    // Do NOT reset dropdown — keep it showing the selected font
     applyFontFamily(v, ed);
+    // Reflect back in case user picks a new one
+    ffSelect.value = v;
   });
 
-  // Font size
+  // ── Font size: auto-apply on input event and on Enter ──
   const fsInput = document.getElementById('fs');
   let fsTargetEditor = null;
+  let fsDebounce = null;
   fsInput.addEventListener('mousedown', () => { fsTargetEditor = getActiveEditor(); });
+  fsInput.addEventListener('focus',     () => { fsTargetEditor = getActiveEditor(); });
+
   function applyFontSize() {
     const size = parseInt(fsInput.value);
     if (!size || size < 6 || size > 120) return;
+    currentFormat.fontSize = size + 'px';
     const ed = fsTargetEditor || getActiveEditor();
     if (!ed) return;
     ed.focus();
     restoreSelection(ed);
     applyInlineStyle('fontSize', size + 'px', ed);
   }
-  fsInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); applyFontSize(); } });
-  document.getElementById('tb-apply-fs').onclick = applyFontSize;
 
-  // Text color
+  fsInput.addEventListener('input', () => {
+    clearTimeout(fsDebounce);
+    fsDebounce = setTimeout(applyFontSize, 400); // slight debounce so it doesn't fire on every keystroke
+  });
+  fsInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); clearTimeout(fsDebounce); applyFontSize(); }
+  });
+
+  // ── Text color: update currentFormat + apply ──
   let tcTargetEditor = null;
   const tcInput = document.getElementById('tc');
   tcInput.addEventListener('mousedown', () => { tcTargetEditor = getActiveEditor(); });
   tcInput.addEventListener('input', e => {
+    currentFormat.textColor = e.target.value;
     const ed = tcTargetEditor || getActiveEditor();
     if (!ed) return;
     ed.focus();
@@ -1406,11 +1567,12 @@ function setupToolbar() {
     applyInlineStyle('color', e.target.value, ed);
   });
 
-  // Highlight color
+  // ── Highlight color: update currentFormat + apply ──
   let hcTargetEditor = null;
   const hcInput = document.getElementById('hc');
   hcInput.addEventListener('mousedown', () => { hcTargetEditor = getActiveEditor(); });
   hcInput.addEventListener('input', e => {
+    currentFormat.highlightColor = e.target.value;
     const ed = hcTargetEditor || getActiveEditor();
     if (!ed) return;
     ed.focus();
@@ -1420,7 +1582,7 @@ function setupToolbar() {
 }
 
 // ══════════════════════════════════════════════
-//  FIX 4: TOOLBAR TOGGLE — in-flow, not fixed
+//  TOOLBAR TOGGLE
 // ══════════════════════════════════════════════
 function toggleToolbar() {
   if (toolbarVisible) hideToolbar();
@@ -1465,8 +1627,24 @@ function removeNote(id) {
   renderAll();
 }
 
-function closeAllNotes() {
-  if (!confirm('Close all notes? Autosave will be cleared. Downloaded .knt files are unaffected.')) return;
+// ══════════════════════════════════════════════
+//  CHANGE 4: closeAllNotes uses #confirm-modal
+//  Hide Save button. Show only "Close All" (discard) and "Cancel".
+// ══════════════════════════════════════════════
+async function closeAllNotes() {
+  const saveBtn = document.getElementById('confirm-save-btn');
+  // Temporarily hide the save button — restore after
+  saveBtn.style.display = 'none';
+
+  const choice = await showConfirmDialog(
+    'Close all notes? Autosave will be cleared.',
+    { discardLabel: 'Close All', discardSub: 'Discard all notes and clear the session' }
+  );
+
+  saveBtn.style.display = ''; // restore
+
+  if (choice === 'cancel' || choice === 'save') return; // save btn hidden so this won't fire, but guard anyway
+  // choice === 'discard'
   clearSession();
   toast('All notes closed. Fresh start!', 'ok');
 }
@@ -1491,7 +1669,6 @@ function renumber() {
   });
 }
 
-// Check if any note has non-empty content
 function sessionHasContent() {
   snapshotContent();
   return notes.some(n => {
@@ -1501,28 +1678,47 @@ function sessionHasContent() {
 }
 
 // ══════════════════════════════════════════════
-//  FIX 7: NEW SESSION + CONFIRM DIALOG + OPEN GUARD
+//  CONFIRM DIALOG — enhanced with custom labels
 // ══════════════════════════════════════════════
-
-// Show the confirm dialog. Returns a promise that resolves with
-// 'save', 'discard', or 'cancel'.
-function showConfirmDialog(msg) {
+function showConfirmDialog(msg, opts) {
   return new Promise(resolve => {
     const modal = document.getElementById('confirm-modal');
     if (msg) document.getElementById('confirm-msg').textContent = msg;
+
+    // Apply custom labels if provided
+    const saveBtn = document.getElementById('confirm-save-btn');
+    const discardBtn = document.getElementById('confirm-discard-btn');
+
+    if (opts) {
+      if (opts.saveLabel) {
+        saveBtn.querySelector('.cb-text').childNodes[0].textContent = opts.saveLabel;
+        if (opts.saveSub) saveBtn.querySelector('.cb-sub').textContent = opts.saveSub;
+      }
+      if (opts.discardLabel) {
+        discardBtn.querySelector('.cb-text').childNodes[0].textContent = opts.discardLabel;
+        if (opts.discardSub) discardBtn.querySelector('.cb-sub').textContent = opts.discardSub;
+      }
+    } else {
+      // Reset defaults
+      saveBtn.querySelector('.cb-text').childNodes[0].textContent = 'Save & Continue';
+      saveBtn.querySelector('.cb-sub').textContent = 'Download a .knt backup, then proceed';
+      discardBtn.querySelector('.cb-text').childNodes[0].textContent = 'Discard & Continue';
+      discardBtn.querySelector('.cb-sub').textContent = 'Lose current notes and proceed without saving';
+    }
+
     modal.classList.add('show');
 
     function cleanup(result) {
       modal.classList.remove('show');
-      document.getElementById('confirm-save-btn').onclick = null;
-      document.getElementById('confirm-discard-btn').onclick = null;
+      saveBtn.onclick = null;
+      discardBtn.onclick = null;
       document.getElementById('confirm-cancel-btn').onclick = null;
       resolve(result);
     }
 
-    document.getElementById('confirm-save-btn').onclick    = () => cleanup('save');
-    document.getElementById('confirm-discard-btn').onclick = () => cleanup('discard');
-    document.getElementById('confirm-cancel-btn').onclick  = () => cleanup('cancel');
+    saveBtn.onclick    = () => cleanup('save');
+    discardBtn.onclick = () => cleanup('discard');
+    document.getElementById('confirm-cancel-btn').onclick = () => cleanup('cancel');
   });
 }
 
@@ -1534,7 +1730,6 @@ async function newSession() {
     if (choice === 'cancel') return;
     if (choice === 'save') {
       saveAll();
-      // Small delay to let the download trigger before clearing
       await new Promise(r => setTimeout(r, 300));
     }
   }
@@ -1553,11 +1748,9 @@ async function guardedOpenKNT() {
       await new Promise(r => setTimeout(r, 300));
     }
   }
-  // Clear so loading replaces everything cleanly
   document.getElementById('import-modal').classList.add('show');
 }
 
-// Close confirm modal if clicking backdrop
 document.getElementById('confirm-modal').addEventListener('click', e => {
   if (e.target === document.getElementById('confirm-modal')) {
     document.getElementById('confirm-modal').classList.remove('show');
@@ -1588,7 +1781,7 @@ function renderAll() {
   notes.forEach((n, i) => {
     const p = buildPanel(n, i);
     if (currentLayout.areas) {
-      const areaNames = 'abcdef';
+      const areaNames = 'abcdefghijkl';
       p.style.gridArea = areaNames[i] || '';
     }
     gc.appendChild(p);
@@ -1596,6 +1789,11 @@ function renderAll() {
 
   updateUI();
 }
+
+// ══════════════════════════════════════════════
+//  CHANGE 5: DRAG-TO-REORDER
+// ══════════════════════════════════════════════
+let dragSrcId = null;
 
 function buildPanel(note, colorIndex) {
   const color = note._color || COLORS[colorIndex % COLORS.length];
@@ -1605,7 +1803,7 @@ function buildPanel(note, colorIndex) {
   div.className = 'note-panel';
   div.dataset.id = note.id;
   div.innerHTML = `
-    <div class="note-header">
+    <div class="note-header" draggable="true">
       <div class="note-color-dot" style="background:${color}"></div>
       <input class="note-title" id="ti-${note.id}" value="${escAttr(note.title)}" spellcheck="false" placeholder="Untitled…">
       <button class="note-close" title="Close panel">✕</button>
@@ -1620,10 +1818,16 @@ function buildPanel(note, colorIndex) {
   const ed  = div.querySelector('.note-editor');
   const ti  = div.querySelector('.note-title');
   const cls = div.querySelector('.note-close');
+  const hdr = div.querySelector('.note-header');
 
+  // Close
   cls.onclick = () => removeNote(note.id);
-  ti.oninput  = () => { note.title = ti.value; scheduleAutosave(); };
 
+  // Title input — prevent drag from propagating when clicking title
+  ti.addEventListener('mousedown', e => e.stopPropagation());
+  ti.oninput = () => { note.title = ti.value; scheduleAutosave(); };
+
+  // Editor focus
   ed.addEventListener('focus', () => {
     activeEditor = ed;
     document.querySelectorAll('.note-panel').forEach(p => p.classList.remove('focused'));
@@ -1660,7 +1864,62 @@ function buildPanel(note, colorIndex) {
       if (e.key === 'b') { e.preventDefault(); saveSelection(ed); toggleInlineTag('b'); }
       if (e.key === 'i') { e.preventDefault(); saveSelection(ed); toggleInlineTag('i'); }
       if (e.key === 'u') { e.preventDefault(); saveSelection(ed); toggleInlineTag('u'); }
+      return; // don't apply format span for ctrl shortcuts
     }
+    // Persistent format state: for printable single characters with a collapsed cursor,
+    // ensure we're inside a span carrying the currentFormat styles.
+    if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      ensureFormatSpan(ed);
+    }
+  });
+
+  // ── Drag-to-reorder (header is the drag handle) ──
+  hdr.addEventListener('dragstart', e => {
+    // Don't drag if user clicked the title input or close button
+    if (e.target === ti || e.target === cls) { e.preventDefault(); return; }
+    dragSrcId = note.id;
+    div.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(note.id));
+  });
+
+  hdr.addEventListener('dragend', () => {
+    div.classList.remove('dragging');
+    document.querySelectorAll('.note-panel').forEach(p => p.classList.remove('drag-over'));
+    dragSrcId = null;
+  });
+
+  div.addEventListener('dragover', e => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragSrcId !== null && dragSrcId !== note.id) {
+      document.querySelectorAll('.note-panel').forEach(p => p.classList.remove('drag-over'));
+      div.classList.add('drag-over');
+    }
+  });
+
+  div.addEventListener('dragleave', e => {
+    // Only remove if leaving the panel entirely
+    if (!div.contains(e.relatedTarget)) {
+      div.classList.remove('drag-over');
+    }
+  });
+
+  div.addEventListener('drop', e => {
+    e.preventDefault();
+    div.classList.remove('drag-over');
+    if (dragSrcId === null || dragSrcId === note.id) return;
+
+    snapshotContent();
+    const srcIdx  = notes.findIndex(n => n.id === dragSrcId);
+    const destIdx = notes.findIndex(n => n.id === note.id);
+    if (srcIdx === -1 || destIdx === -1) return;
+
+    // Swap
+    [notes[srcIdx], notes[destIdx]] = [notes[destIdx], notes[srcIdx]];
+    renderAll();
+    scheduleAutosave();
+    toast('Notes reordered!', 'ok');
   });
 
   setTimeout(() => updateWC(note.id, ed), 0);
@@ -1735,7 +1994,7 @@ function buildLayoutPicker() {
   });
 
   renderCustomSavedList();
-  updateCustomPreview();
+  vgbRebuildGrid();
 }
 
 function toggleLayoutPanel() {
@@ -1777,40 +2036,250 @@ document.addEventListener('click', e => {
   }
 });
 
-// ══════════════════════════════════════════════
-//  FIX 3: SIMPLIFIED CUSTOM LAYOUT EDITOR
-//  Just cols × rows inputs + live preview + name + save
-// ══════════════════════════════════════════════
+// Stop any click inside the layout panel from reaching the document outside-click handler
+document.getElementById('layout-panel').addEventListener('click', e => {
+  e.stopPropagation();
+});
 
-function updateCustomPreview() {
-  const cols = Math.max(1, Math.min(6, parseInt(document.getElementById('cl-cols').value) || 2));
-  const rows = Math.max(1, Math.min(6, parseInt(document.getElementById('cl-rows').value) || 2));
+// ══════════════════════════════════════════════
+//  CHANGE 1: VISUAL GRID BUILDER STATE
+// ══════════════════════════════════════════════
+// vgb = visual grid builder
+// Each cell is identified by (row, col) → index = row * cols + col
+// mergeGroups: array of { cells: Set<index>, name: string }
+// A cell can belong to at most one merge group.
+
+let vgbCols = 2;
+let vgbRows = 2;
+let vgbSelected = new Set(); // cell indices currently selected (highlighted blue)
+let vgbGroups = [];          // array of { cells: number[], name: string, color: string }
+
+const VGB_GROUP_COLORS = ['#c8f562','#7c6af5','#f5a623','#ff6b9d','#38d9f5','#ff9e5e'];
+
+function vgbGetMergedCells() {
+  // Returns a Set of all cell indices that belong to any group
+  const s = new Set();
+  vgbGroups.forEach(g => g.cells.forEach(c => s.add(c)));
+  return s;
+}
+
+function vgbGroupOfCell(idx) {
+  return vgbGroups.find(g => g.cells.includes(idx)) || null;
+}
+
+function vgbReset() {
+  vgbSelected.clear();
+  vgbGroups = [];
+  vgbRebuildGrid();
+}
+
+function vgbRebuildGrid() {
+  vgbCols = Math.max(1, Math.min(6, parseInt(document.getElementById('cl-cols').value) || 2));
+  vgbRows = Math.max(1, Math.min(6, parseInt(document.getElementById('cl-rows').value) || 2));
+
+  const grid = document.getElementById('vgb-grid');
+  grid.style.gridTemplateColumns = `repeat(${vgbCols}, 1fr)`;
+  grid.style.gridTemplateRows    = `repeat(${vgbRows}, 1fr)`;
+  grid.innerHTML = '';
+
+  const mergedCells = vgbGetMergedCells();
+
+  for (let r = 0; r < vgbRows; r++) {
+    for (let c = 0; c < vgbCols; c++) {
+      const idx = r * vgbCols + c;
+      const cell = document.createElement('div');
+      cell.className = 'vgb-cell';
+      cell.dataset.idx = idx;
+
+      const group = vgbGroupOfCell(idx);
+      if (group) {
+        cell.classList.add('merged');
+        cell.style.background = group.color + '22';
+        cell.style.borderColor = group.color;
+        cell.style.color = group.color;
+        cell.textContent = group.name;
+      } else if (vgbSelected.has(idx)) {
+        cell.classList.add('selected');
+        cell.textContent = '✓';
+      } else {
+        cell.textContent = `${r+1},${c+1}`;
+      }
+
+      cell.addEventListener('click', (e) => {
+        e.stopPropagation(); // prevent bubbling to document outside-click handler
+        const group = vgbGroupOfCell(idx);
+        if (group) return; // already merged — can't select
+        if (vgbSelected.has(idx)) {
+          vgbSelected.delete(idx);
+        } else {
+          vgbSelected.add(idx);
+        }
+        vgbRebuildGrid();
+      });
+
+      grid.appendChild(cell);
+    }
+  }
+
+  vgbRenderGroups();
+  vgbUpdatePreview();
+}
+
+function vgbMergeSelected() {
+  if (vgbSelected.size < 2) {
+    toast('Select 2+ cells to merge!', 'err');
+    return;
+  }
+  const cells = [...vgbSelected];
+  const groupName = 'abcdefghijklmnopqrstuvwxyz'[vgbGroups.length] || `p${vgbGroups.length+1}`;
+  const color = VGB_GROUP_COLORS[vgbGroups.length % VGB_GROUP_COLORS.length];
+  vgbGroups.push({ cells, name: groupName, color });
+  vgbSelected.clear();
+  vgbRebuildGrid();
+  toast(`Merged ${cells.length} cells → panel "${groupName}"`, 'ok');
+}
+
+function vgbDeleteGroup(groupIdx) {
+  vgbGroups.splice(groupIdx, 1);
+  // Rename remaining groups alphabetically
+  vgbGroups.forEach((g, i) => {
+    g.name = 'abcdefghijklmnopqrstuvwxyz'[i] || `p${i+1}`;
+    g.color = VGB_GROUP_COLORS[i % VGB_GROUP_COLORS.length];
+  });
+  vgbRebuildGrid();
+}
+
+function vgbRenderGroups() {
+  const list = document.getElementById('vgb-groups-list');
+  list.innerHTML = '';
+  if (!vgbGroups.length) {
+    list.innerHTML = '<div style="font-size:0.65rem;color:var(--muted)">No merged groups yet. Select cells and click Merge.</div>';
+    return;
+  }
+  vgbGroups.forEach((g, i) => {
+    const item = document.createElement('div');
+    item.className = 'vgb-group-item';
+    const cellLabels = g.cells.map(idx => {
+      const r = Math.floor(idx / vgbCols) + 1;
+      const c = (idx % vgbCols) + 1;
+      return `${r},${c}`;
+    }).join(' ');
+    item.innerHTML = `
+      <span class="vgi-label" style="color:${g.color}">Panel "${g.name}"</span>
+      <span class="vgi-cells">cells: ${cellLabels}</span>
+      <button class="vgi-del" title="Remove group">✕</button>`;
+    item.querySelector('.vgi-del').onclick = (e) => { e.stopPropagation(); vgbDeleteGroup(i); };
+    list.appendChild(item);
+  });
+}
+
+// ── Generate CSS grid-template-areas from groups + remaining cells ──
+function vgbGenerateAreas() {
+  const totalCells = vgbRows * vgbCols;
+  // Map each cell index to its area name
+  const cellNames = new Array(totalCells).fill(null);
+
+  vgbGroups.forEach(g => {
+    g.cells.forEach(idx => { cellNames[idx] = g.name; });
+  });
+
+  // Assign solo names to ungrouped cells
+  const letters = 'abcdefghijklmnopqrstuvwxyz';
+  let soloIdx = vgbGroups.length;
+  for (let i = 0; i < totalCells; i++) {
+    if (cellNames[i] === null) {
+      cellNames[i] = letters[soloIdx] || `z${soloIdx}`;
+      soloIdx++;
+    }
+  }
+
+  // Build area rows
+  const areaRows = [];
+  for (let r = 0; r < vgbRows; r++) {
+    const rowNames = [];
+    for (let c = 0; c < vgbCols; c++) {
+      rowNames.push(cellNames[r * vgbCols + c]);
+    }
+    areaRows.push('"' + rowNames.join(' ') + '"');
+  }
+
+  return { areas: areaRows.join(' '), cellNames };
+}
+
+function vgbCountPanels() {
+  const totalCells = vgbRows * vgbCols;
+  const mergedCells = vgbGetMergedCells();
+  const ungrouped = totalCells - mergedCells.size;
+  return vgbGroups.length + ungrouped;
+}
+
+function vgbUpdatePreview() {
   const box = document.getElementById('custom-preview-box');
   if (!box) return;
 
-  box.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-  box.style.gridTemplateRows    = `repeat(${rows}, 1fr)`;
-  box.style.gridTemplateAreas   = 'none';
+  const { areas, cellNames } = vgbGenerateAreas();
+  box.style.gridTemplateColumns = `repeat(${vgbCols}, 1fr)`;
+  box.style.gridTemplateRows    = `repeat(${vgbRows}, 1fr)`;
+  box.style.gridTemplateAreas   = areas;
   box.innerHTML = '';
-  for (let i = 0; i < cols * rows; i++) {
+
+  // Get unique panel names in order
+  const seen = new Set();
+  const panels = [];
+  cellNames.forEach(name => {
+    if (!seen.has(name)) { seen.add(name); panels.push(name); }
+  });
+
+  panels.forEach((name, i) => {
     const d = document.createElement('div');
+    d.style.gridArea = name;
+    // Check if this is a merged group
+    const group = vgbGroups.find(g => g.name === name);
+    if (group) {
+      d.className = 'preview-merged';
+      d.style.background = group.color + '55';
+      d.style.opacity = '1';
+    }
     box.appendChild(d);
-  }
+  });
 }
 
+// ══════════════════════════════════════════════
+//  CHANGE 1 + 2: SAVE CUSTOM LAYOUT
+//  Cap at MAX (12) panels
+// ══════════════════════════════════════════════
 function saveCustomLayout() {
   const cols = Math.max(1, Math.min(6, parseInt(document.getElementById('cl-cols').value) || 2));
   const rows = Math.max(1, Math.min(6, parseInt(document.getElementById('cl-rows').value) || 2));
   const name = document.getElementById('cl-name').value.trim() || `${cols}×${rows} Custom`;
 
-  const colT  = `repeat(${cols}, 1fr)`;
-  const rowT  = `repeat(${rows}, 1fr)`;
-  const count = cols * rows;
+  // Count panels: if areas exist, count unique area names; otherwise cols×rows
+  let panelCount;
+  let areas = null;
+  if (vgbGroups.length > 0) {
+    const result = vgbGenerateAreas();
+    areas = result.areas;
+    // Count unique area names in the generated areas string
+    const areaNames = new Set(result.areas.replace(/["]/g, '').trim().split(/\s+/));
+    panelCount = areaNames.size;
+  } else {
+    panelCount = cols * rows;
+  }
+
+  if (panelCount > MAX) {
+    toast(`Max 12 panels per layout! This has ${panelCount}.`, 'err');
+    return;
+  }
+
+  const colT = `repeat(${cols}, 1fr)`;
+  const rowT = `repeat(${rows}, 1fr)`;
 
   const layout = {
     label: name,
     cols, rows,
-    colT, rowT, count,
+    colT, rowT,
+    count: panelCount,
+    areas: areas || undefined,
     isCustom: true, id: Date.now()
   };
 
@@ -1818,7 +2287,7 @@ function saveCustomLayout() {
   persistCustomLayouts();
   buildLayoutPicker();
   document.getElementById('cl-name').value = '';
-  toast(`Layout "${name}" saved!`, 'ok');
+  toast(`Layout "${name}" saved (${panelCount} panels)!`, 'ok');
 }
 
 function deleteCustomLayout(id) {
@@ -1852,7 +2321,7 @@ function renderCustomSavedList() {
     item.className = 'custom-saved-item' + (currentLayout === l ? ' selected' : '');
     item.innerHTML = `
       <span class="csi-label">${escAttr(l.label)}</span>
-      <span style="font-size:0.62rem;color:var(--muted);font-family:'DM Mono',monospace">${l.cols}×${l.rows}</span>
+      <span style="font-size:0.62rem;color:var(--muted);font-family:'DM Mono',monospace">${l.cols}×${l.rows} · ${l.count}p</span>
       <button class="csi-del" title="Delete">✕</button>`;
     item.onclick = (e) => {
       if (e.target.classList.contains('csi-del')) { deleteCustomLayout(l.id); return; }
@@ -1864,10 +2333,14 @@ function renderCustomSavedList() {
   });
 }
 
-// Wire up live preview on cols/rows change
+// Wire up live grid rebuild on cols/rows change
 ['cl-cols','cl-rows'].forEach(id => {
   const el = document.getElementById(id);
-  if (el) el.addEventListener('input', updateCustomPreview);
+  if (el) el.addEventListener('input', () => {
+    vgbGroups = [];
+    vgbSelected.clear();
+    vgbRebuildGrid();
+  });
 });
 
 // ══════════════════════════════════════════════
@@ -2226,7 +2699,6 @@ function setupTouchSupport() {
 (function init() {
   loadCustomLayouts();
 
-  // FIX 4: Restore toolbar state using in-flow elements
   const tbPref = localStorage.getItem('kn_toolbar');
   if (tbPref === '0') {
     toolbarVisible = false;
@@ -2234,7 +2706,6 @@ function setupTouchSupport() {
     document.getElementById('toolbar-show-bar').style.display = 'block';
   }
 
-  // Restore from autosave
   const restored = loadFromAutosave();
   if (restored) {
     renderAll();
@@ -2247,13 +2718,12 @@ function setupTouchSupport() {
   setupImport();
   setupTouchSupport();
 
-  // Passive autosave every 5s
   setInterval(() => {
     if (notes.length > 0) doAutosave();
   }, 5000);
 
-  // Init custom preview
-  updateCustomPreview();
+  // Init VGB
+  vgbRebuildGrid();
 })();
 </script>
 </body>
